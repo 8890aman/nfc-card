@@ -14,13 +14,11 @@ import BoldTemplate from './templates/BoldTemplate';
 import StartupTemplate from './templates/StartupTemplate';
 import PortfolioTemplate from './templates/PortfolioTemplate';
 import AcademicTemplate from './templates/AcademicTemplate';
-import QRCodePopup from '../QRCodePopup';
 
 const PublicProfilePage = () => {
   const { userId } = useParams();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
