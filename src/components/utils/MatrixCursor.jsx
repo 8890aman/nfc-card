@@ -8,6 +8,8 @@ const MatrixCursor = () => {
   const [isHovering, setIsHovering] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isPointerEvent, setIsPointerEvent] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -33,6 +35,22 @@ const MatrixCursor = () => {
     setIsVisible(false);
   }, []);
 
+  const handlePointerDown = useCallback(() => {
+    setIsPointerEvent(true);
+  }, []);
+
+  const handlePointerUp = useCallback(() => {
+    setIsPointerEvent(false);
+  }, []);
+
+  const handleKeyDown = useCallback(() => {
+    setIsTyping(true);
+  }, []);
+
+  const handleKeyUp = useCallback(() => {
+    setIsTyping(false);
+  }, []);
+
   useEffect(() => {
     const checkIsDesktop = () => {
       setIsDesktop(window.matchMedia('(hover: hover) and (pointer: fine)').matches);
@@ -46,6 +64,14 @@ const MatrixCursor = () => {
 
   useEffect(() => {
     if (!isDesktop) return;
+
+    // Add these lines to hide the default cursor
+    document.body.classList.add('cursor-none');
+    const interactiveElements = document.querySelectorAll('a, button, [role="button"], input[type="submit"], input[type="button"]');
+    interactiveElements.forEach(el => el.classList.add('cursor-none'));
+
+    // Add this line to hide the default cursor
+    document.body.style.cursor = 'none';
 
     const animation = animate(
       scope.current,
@@ -75,6 +101,10 @@ const MatrixCursor = () => {
     document.addEventListener('mouseover', handleMouseEnter);
     document.addEventListener('mouseout', handleMouseLeave);
     document.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('pointerdown', handlePointerDown);
+    window.addEventListener('pointerup', handlePointerUp);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
 
     return () => {
       animation.stop();
@@ -83,8 +113,17 @@ const MatrixCursor = () => {
       document.removeEventListener('mouseover', handleMouseEnter);
       document.removeEventListener('mouseout', handleMouseLeave);
       document.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointerup', handlePointerUp);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+
+      // Add these lines to restore the default cursor when the component unmounts
+      document.body.classList.remove('cursor-none');
+      interactiveElements.forEach(el => el.classList.remove('cursor-none'));
+      document.body.style.cursor = 'auto';
     };
-  }, [isDesktop, animate, scope, updateMousePosition, handleMouseEnter, handleMouseLeave]);
+  }, [isDesktop, animate, scope, updateMousePosition, handleMouseEnter, handleMouseLeave, handlePointerDown, handlePointerUp, handleKeyDown, handleKeyUp]);
 
   const lightenColor = useCallback((color) => {
     const rgb = color.match(/\d+/g);
@@ -115,7 +154,7 @@ const MatrixCursor = () => {
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           transform: 'translate(-2px, -2px)',
-          opacity: isVisible ? 1 : 0,
+          opacity: isVisible && !isPointerEvent && !isTyping ? 1 : 0,
         }}
       />
     </>

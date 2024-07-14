@@ -9,6 +9,14 @@
   html.has-scroll-smooth {
     overflow: hidden;
   }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
   
   html.has-scroll-dragging {
     -webkit-user-select: none;
@@ -24,3 +32,83 @@
   .has-scroll-smooth [data-scroll-container] {
     min-height: 100vh;
   }
+  .wifi-loader {
+    width: 50px;
+    height: 50px;
+    position: relative;
+  }
+  
+  .wifi-circle {
+    border: 3px solid transparent;
+    border-top-color: #000;
+    border-right-color: #000;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: wifi-circle-animation 1s linear infinite;
+  }
+  
+  .wifi-circle.dark {
+    border-top-color: #fff;
+    border-right-color: #fff;
+  }
+  
+  .wifi-circle:nth-child(1) {
+    width: 50px;
+    height: 50px;
+    animation-delay: 0s;
+  }
+  
+  .wifi-circle:nth-child(2) {
+    width: 35px;
+    height: 35px;
+    animation-delay: 0.2s;
+  }
+  
+  .wifi-circle:nth-child(3) {
+    width: 20px;
+    height: 20px;
+    animation-delay: 0.4s;
+  }
+  .card-3d {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .card-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    opacity: 0.3;
+    background: linear-gradient(
+      to right,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-20deg);
+    animation: shine 3s infinite;
+  }
+  
+  @keyframes shine {
+    0% {
+      left: -100%;
+    }
+    100% {
+      left: 100%;
+    }
+  }
+  
+  @keyframes wifi-circle-animation {
+    0% {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+  

@@ -12,13 +12,13 @@ const Footer = () => {
 
   return (
     <motion.footer 
-      className="relative bg-black text-green-500 py-12 overflow-hidden"
+      className="relative bg-white dark:bg-black text-green-700 dark:text-green-400 py-12 overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
     >
       <AnimatedBackground />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black opacity-70 z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white dark:to-black opacity-70 z-0"></div>
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
           <div className="text-center md:text-left">
@@ -39,7 +39,7 @@ const Footer = () => {
                 <motion.a
                   key={text}
                   href="#"
-                  className="block text-green-400 hover:text-green-300 transition-colors duration-300"
+                  className="block text-green-700 dark:text-green-400 hover:text-green-600 dark:hover:text-green-500 transition-colors duration-300"
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -58,7 +58,7 @@ const Footer = () => {
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-green-400 hover:text-green-300 transition-colors duration-300"
+                  className="text-green-700 dark:text-green-400 hover:text-green-600 dark:hover:text-green-500 transition-colors duration-300"
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -69,8 +69,8 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        <div className="mt-8 pt-8 border-t border-green-800 text-center">
-          <p className="text-sm text-green-600">
+        <div className="mt-8 pt-8 border-t border-green-200 dark:border-green-800 text-center">
+          <p className="text-sm text-green-700 dark:text-green-500">
             All rights reserved. Designed with ❤️ by Your Team
           </p>
         </div>

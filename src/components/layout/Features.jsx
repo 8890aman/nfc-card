@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faLocation, faLock, faChartLine, faWrench, faUsers } from '@fortawesome/free-solid-svg-icons'
+import { faLocation, faLock, faChartLine, faWrench, faUsers, faCloud, faMobileAlt, faShieldAlt, faCog, faComments } from '@fortawesome/free-solid-svg-icons'
 import { motion } from 'framer-motion'
 import { useInView } from 'framer-motion';
 import { useRef } from 'react';
@@ -89,30 +89,37 @@ const AnimatedBackground = () => {
 
 const Features = () => {
   const features = [
-    { title: "Fast", description: "Lightning-quick performance", icon: faLocation },
-    { title: "Secure", description: "Top-notch security measures", icon: faLock },
-    { title: "Scalable", description: "Grows with your business", icon: faChartLine },
-    { title: "24/7 Support", description: "Always here to help", icon: faWrench },
-    { title: "User-friendly", description: "Intuitive interface", icon: faUsers },
+    { title: "Fast", description: "Lightning-quick performance for seamless user experience", icon: faLocation },
+    { title: "Secure", description: "Top-notch security measures to protect your data", icon: faLock },
+    { title: "Scalable", description: "Grows effortlessly with your business needs", icon: faChartLine },
+    { title: "24/7 Support", description: "Round-the-clock assistance whenever you need it", icon: faWrench },
+    { title: "User-friendly", description: "Intuitive interface for easy navigation", icon: faUsers },
+    { title: "Cloud-based", description: "Access your data from anywhere, anytime", icon: faCloud },
+    { title: "Mobile-ready", description: "Fully responsive design for all devices", icon: faMobileAlt },
+    { title: "Advanced Analytics", description: "Gain insights with powerful data analysis tools", icon: faChartLine },
+    { title: "Customizable", description: "Tailor the platform to fit your specific needs", icon: faCog },
+    { title: "Collaborative", description: "Enhance teamwork with built-in collaboration tools", icon: faComments },
+    { title: "Automated Backups", description: "Never lose your data with automatic backups", icon: faShieldAlt },
+    { title: "API Integration", description: "Seamlessly connect with your favorite tools", icon: faCog },
   ]
 
   return (
-    <section className="relative py-12 bg-white dark:bg-black transition-colors duration-300 overflow-hidden">
+    <section className="relative py-20 bg-white dark:bg-black transition-colors duration-300 overflow-hidden">
       <AnimatedBackground />
       <div className="absolute inset-0 bg-white dark:bg-black bg-opacity-50 dark:bg-opacity-50 backdrop-blur-2xl z-0"></div>
       
       <div className="container mx-auto px-4 relative z-10">
         <motion.h2 
-          className="text-4xl font-bold mb-8 text-center text-green-600 dark:text-green-400"
+          className="text-5xl font-bold mb-12 text-center text-green-600 dark:text-green-400"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          Our Features
+          Powerful Features for Your Success
         </motion.h2>
-        <div className="grid grid-cols-3 grid-rows-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <motion.div 
-            className="col-span-2 row-span-2 bg-green-100 dark:bg-green-800 bg-opacity-20 dark:bg-opacity-20 backdrop-filter backdrop-blur-2xl rounded-lg p-6 relative overflow-hidden"
+            className="col-span-1 md:col-span-2 lg:col-span-3 bg-green-100 dark:bg-green-800 bg-opacity-20 dark:bg-opacity-20 backdrop-filter backdrop-blur-2xl rounded-lg p-8 relative overflow-hidden"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -120,16 +127,17 @@ const Features = () => {
           >
             <AnimatedBackground />
             <div className="relative z-10">
-              <h3 className="text-2xl font-bold mb-4 text-green-700 dark:text-green-300">Discover Our Platform</h3>
+              <h3 className="text-3xl font-bold mb-4 text-green-700 dark:text-green-300">Discover Our Platform</h3>
               <p className="text-xl text-green-600 dark:text-green-400 mb-6">
-                Learn why our platform stands out from the rest
+                Experience the power of our comprehensive solution designed to elevate your business to new heights.
+                Our platform combines cutting-edge technology with user-friendly interfaces to deliver unparalleled performance and results.
               </p>
               <motion.button 
-                className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300"
+                className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300"
                 whileHover={{ scale: 1.05, boxShadow: "0px 0px 8px rgba(34, 197, 94, 0.5)" }}
                 whileTap={{ scale: 0.95 }}
               >
-                Learn More
+                Start Your Journey
               </motion.button>
             </div>
           </motion.div>

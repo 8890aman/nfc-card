@@ -3,12 +3,20 @@ import React from "react";
 import { ThemeProvider } from "@material-tailwind/react";
 import { useState, useEffect, useCallback } from 'react';
 import Home from './components/pages/Home';
+import EmailVerification from './components/pages/EmailVerification';
+import DesignCard from './components/pages/DesignCard';
 import { library } from '@fortawesome/fontawesome-svg-core';
+import UserWalkthrough from './components/pages/UserWalkthrough';
+import NotFound from './components/pages/404/404';
+import PublicProfilePage from "./components/pages/dashboard/PublicProfilePage";
 import { 
   faMicrochip, faWifi, faNetworkWired, faServer, 
   faDatabase, faCode
 } from '@fortawesome/free-solid-svg-icons';
-import SmoothScroll from './components/common/SmoothScroll';
+import { Routes, Route } from "react-router-dom";
+import Login from "./components/pages/Login";
+import Signup from "./components/pages/Signup";
+import Dashboard from "./components/pages/dashboard/dashboard";
 
 // Add icons to the library
 library.add(
@@ -36,11 +44,17 @@ function App() {
 
   return (
     <ThemeProvider>
-      <SmoothScroll>
-        <div className="bg-white dark:bg-black min-h-screen transition-colors duration-300">
-          <Home darkMode={darkMode} setDarkMode={handleDarkModeToggle} />
-        </div>
-      </SmoothScroll>
+      <Routes>
+        <Route path="/" element={<Home darkMode={darkMode} setDarkMode={handleDarkModeToggle} />} />
+        <Route path="/design-card" element={<DesignCard darkMode={darkMode} setDarkMode={handleDarkModeToggle} />} />
+        <Route path="/email-verification" element={<EmailVerification darkMode={darkMode} setDarkMode={handleDarkModeToggle} />} />
+        <Route path="/login" element={<Login darkMode={darkMode} setDarkMode={handleDarkModeToggle} />} />
+        <Route path="/signup" element={<Signup darkMode={darkMode} setDarkMode={handleDarkModeToggle} />} />
+        <Route path="/dashboard" element={<Dashboard darkMode={darkMode} setDarkMode={handleDarkModeToggle} />} />
+        <Route path="/user-walkthrough" element={<UserWalkthrough darkMode={darkMode} setDarkMode={handleDarkModeToggle} />} />
+        <Route path="*" element={<NotFound darkMode={darkMode} setDarkMode={handleDarkModeToggle} />} />
+        <Route path="/profile/:userId" element={<PublicProfilePage />} />
+      </Routes>
     </ThemeProvider>
   );
 }

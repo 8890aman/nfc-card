@@ -1,6 +1,7 @@
 import { Button } from "@material-tailwind/react";
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
+import { NavLink } from "react-router-dom";
 
 function Hero() {
   const ref = useRef(null);
@@ -30,12 +31,14 @@ function Hero() {
           Elevate your networking with our custom NFC-enabled business cards. Share your details instantly and make a lasting digital impression.
         </motion.p>
         <div className="flex justify-center space-x-4">
-          <Button 
-            size="lg" 
-            className="bg-green-500 hover:bg-green-600 text-white font-bold transition-all duration-300 font-outfit text-lg px-8 py-3 rounded-full shadow-lg hover:shadow-green-600/50"
-          >
-            Design Your Card
-          </Button>
+          <NavLink to="/design-card">
+            <Button 
+              size="lg" 
+              className="bg-green-500 hover:bg-green-600 text-white font-bold transition-all duration-300 font-outfit text-lg px-8 py-3 rounded-full shadow-lg hover:shadow-green-600/50"
+            >
+              Design Your Card
+            </Button>
+          </NavLink>
           <Button 
             size="lg" 
             className="bg-transparent border-2 border-green-500 hover:bg-green-500/10 text-green-500 font-bold transition-all duration-300 font-outfit text-lg px-8 py-3 rounded-full shadow-lg hover:shadow-green-500/30"

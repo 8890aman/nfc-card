@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect, useRef, createContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useInView } from 'framer-motion';
 import Hero from "../layout/Hero";
@@ -7,88 +8,128 @@ import Features from "../layout/Features";
 import AboutUs from "../layout/AboutUs";
 import ContactUs from "../layout/ContactUs";
 import Footer from "../layout/Footer";
+import Preloader from "../common/Preloader"; // Add this import
 
-// Array of icon names
-// const icons = [
-//   'microchip', 'wifi', 'network-wired', 'server', 
-//   'database', 'code'
-// ];
+// Create a new context for the active section
+export const ActiveSectionContext = createContext();
 
 function Home() {
+  const [isLoading, setIsLoading] = useState(true);
   const [isHeroVisible, setIsHeroVisible] = useState(false);
+  const [activeSection, setActiveSection] = useState('hero');
   const heroRef = useRef(null);
+  const featuresRef = useRef(null);
+  const aboutRef = useRef(null);
+  const contactRef = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsHeroVisible(entry.isIntersecting);
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
       },
-      { threshold: 0.1 }
+      { threshold: 0.5 }
     );
 
-    if (heroRef.current) {
-      observer.observe(heroRef.current);
-    }
+    const refs = [heroRef, featuresRef, aboutRef, contactRef];
+    refs.forEach((ref) => {
+      if (ref.current) {
+        observer.observe(ref.current);
+      }
+    });
+
+    // Simulate loading time
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000); // Adjust this value to control how long the preloader is shown
 
     return () => {
-      if (heroRef.current) {
-        observer.unobserve(heroRef.current);
-      }
+      refs.forEach((ref) => {
+        if (ref.current) {
+          observer.unobserve(ref.current);
+        }
+      });
+      clearTimeout(timer);
     };
   }, []);
 
   return (
-    <>
-      <Navbar />
-      <div className="bg-white dark:bg-black min-h-screen font-roboto text-green-700 dark:text-green-400 flex items-center justify-center relative overflow-hidden">
-        <AnimatePresence mode="wait">
-          {isHeroVisible && <MemoizedGlowingBlobs />}
-        </AnimatePresence>
+    <div className="bg-white dark:bg-black min-h-screen transition-colors duration-300">
 
-        {/* Increased number of revolving lights */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-3/4 h-3/4 bg-green-50/30 dark:bg-green-900/20 rounded-3xl backdrop-blur-md relative overflow-hidden">
-            <div className="absolute inset-0">
-              {/* Light 1 - Top Left */}
-              <div className="absolute top-0 left-0 w-1/2 h-1/2 animate-revolve" style={{animationDuration: '20s'}}>
-                <div className="absolute w-32 h-32 bg-green-400/30 rounded-full filter blur-xl"></div>
-              </div>
+    <ActiveSectionContext.Provider value={activeSection}>
+      <AnimatePresence>
+        {isLoading && <Preloader />}
+      </AnimatePresence>
+      <div className="overflow-x-hidden">
+        <Navbar />
+        <div id="hero" ref={heroRef} className="bg-white dark:bg-black min-h-screen font-roboto text-green-700 dark:text-green-400 flex items-center justify-center relative overflow-hidden">
+          <AnimatePresence mode="wait">
+            {isHeroVisible && <MemoizedGlowingBlobs />}
+          </AnimatePresence>
 
-              {/* Light 2 - Bottom Right */}
-              <div className="absolute bottom-0 right-0 w-1/2 h-1/2 animate-revolve" style={{animationDuration: '22s', animationDirection: 'reverse'}}>
-                <div className="absolute w-28 h-28 bg-green-200/30 rounded-full filter blur-xl"></div>
-              </div>
+          {/* Increased number of revolving lights */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-3/4 h-3/4 bg-green-50/30 dark:bg-green-900/20 rounded-3xl backdrop-blur-md relative overflow-hidden">
+              <div className="absolute inset-0">
+                {/* Light 1 - Top Left */}
+                <div className="absolute top-0 left-0 w-1/2 h-1/2 animate-revolve" style={{animationDuration: '20s'}}>
+                  <div className="absolute w-32 h-32 bg-green-400/30 rounded-full filter blur-xl"></div>
+                </div>
 
-              {/* Light 3 - Top Right */}
-              <div className="absolute top-0 right-0 w-1/2 h-1/2 animate-revolve" style={{animationDuration: '25s', animationDelay: '-5s'}}>
-                <div className="absolute w-36 h-36 bg-green-300/30 rounded-full filter blur-xl"></div>
-              </div>
+                {/* Light 2 - Bottom Right */}
+                <div className="absolute bottom-0 right-0 w-1/2 h-1/2 animate-revolve" style={{animationDuration: '22s', animationDirection: 'reverse'}}>
+                  <div className="absolute w-28 h-28 bg-green-200/30 rounded-full filter blur-xl"></div>
+                </div>
 
-              {/* Light 4 - Bottom Left */}
-              <div className="absolute bottom-0 left-0 w-1/2 h-1/2 animate-revolve" style={{animationDuration: '18s', animationDirection: 'reverse', animationDelay: '-3s'}}>
-                <div className="absolute w-24 h-24 bg-green-500/30 rounded-full filter blur-xl"></div>
-              </div>
+                {/* Light 3 - Top Right */}
+                <div className="absolute top-0 right-0 w-1/2 h-1/2 animate-revolve" style={{animationDuration: '25s', animationDelay: '-5s'}}>
+                  <div className="absolute w-36 h-36 bg-green-300/30 rounded-full filter blur-xl"></div>
+                </div>
 
-              {/* Light 5 - Center */}
-              <div className="absolute inset-1/4 animate-pulse" style={{animationDuration: '4s'}}>
-                <div className="absolute w-full h-full bg-green-400/20 rounded-full filter blur-xl"></div>
+                {/* Light 4 - Bottom Left */}
+                <div className="absolute bottom-0 left-0 w-1/2 h-1/2 animate-revolve" style={{animationDuration: '18s', animationDirection: 'reverse', animationDelay: '-3s'}}>
+                  <div className="absolute w-24 h-24 bg-green-500/30 rounded-full filter blur-xl"></div>
+                </div>
+
+                {/* Light 5 - Center */}
+                <div className="absolute inset-1/4 animate-pulse" style={{animationDuration: '4s'}}>
+                  <div className="absolute w-full h-full bg-green-400/20 rounded-full filter blur-xl"></div>
+                </div>
               </div>
             </div>
           </div>
+          
+          <div ref={heroRef} data-scroll data-scroll-speed="2">
+            <Hero />
+          </div>
         </div>
-        
-        <div ref={heroRef}>
-          <Hero />
-        </div>
-      </div>
 
-      <div className="relative overflow-hidden">
-        <Features />
-        <AboutUs />
-        <ContactUs />
+        <div id="features" ref={featuresRef} className="relative overflow-hidden">
+          <div data-scroll data-scroll-speed="1">
+            <Features />
+          </div>
+        </div>
+
+        <div id="about" ref={aboutRef} className="relative overflow-hidden">
+          <div data-scroll data-scroll-speed="1">
+            <AboutUs />
+          </div>
+        </div>
+
+        <div id="contact" ref={contactRef} className="relative overflow-hidden">
+          <div data-scroll data-scroll-speed="1">
+            <ContactUs />
+          </div>
+        </div>
+
         <Footer />
       </div>
-    </>
+    </ActiveSectionContext.Provider>
+      
+    </div>
   );
 }
 
