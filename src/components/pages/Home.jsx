@@ -8,6 +8,7 @@ import Features from "../layout/Features";
 import AboutUs from "../layout/AboutUs";
 import ContactUs from "../layout/ContactUs";
 import Footer from "../layout/Footer";
+import Products from "../layout/Products";
 import Preloader from "../common/Preloader"; // Add this import
 
 // Create a new context for the active section
@@ -21,6 +22,7 @@ function Home() {
   const featuresRef = useRef(null);
   const aboutRef = useRef(null);
   const contactRef = useRef(null);
+  const productsRef = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -34,7 +36,7 @@ function Home() {
       { threshold: 0.5 }
     );
 
-    const refs = [heroRef, featuresRef, aboutRef, contactRef];
+    const refs = [heroRef, productsRef, featuresRef, aboutRef, contactRef];
     refs.forEach((ref) => {
       if (ref.current) {
         observer.observe(ref.current);
@@ -107,9 +109,16 @@ function Home() {
           </div>
         </div>
 
+       
+
         <div id="features" ref={featuresRef} className="relative overflow-hidden">
           <div data-scroll data-scroll-speed="1">
             <Features />
+          </div>
+        </div>
+        <div id="products" ref={productsRef} className="relative overflow-hidden">
+          <div data-scroll data-scroll-speed="1">
+            <Products />
           </div>
         </div>
 

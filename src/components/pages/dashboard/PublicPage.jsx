@@ -77,40 +77,6 @@ const PublicPage = ({ user, userData, darkMode, updateUserProfile }) => {
     updateUserProfile({ tags: updatedTags });
   };
 
-  const getTemplateComponent = () => {
-    switch (selectedTemplate) {
-      case 'professional':
-        return ProfessionalTemplate;
-      case 'creative':
-        return CreativeTemplate;
-      case 'minimalist':
-        return MinimalistTemplate;
-      case 'tech':
-        return TechTemplate;
-      case 'elegant':
-        return ElegantTemplate;
-      case 'bold':
-        return BoldTemplate;
-      case 'startup':
-        return StartupTemplate;
-      case 'portfolio':
-        return PortfolioTemplate;
-      case 'academic':
-        return AcademicTemplate;
-      default:
-        return BaseTemplate;
-    }
-  };
-  const TemplateComponent = getTemplateComponent();
-
-  const getLinkIcon = (url) => {
-    if (url.includes('facebook.com')) return FaFacebook;
-    if (url.includes('instagram.com')) return FaInstagram;
-    if (url.includes('linkedin.com')) return FaLinkedin;
-    if (url.includes('gmail.com')) return SiGmail;
-    return FaLink;
-  };
-
   const saveTemplate = async () => {
     try {
       const templateData = {
@@ -187,6 +153,10 @@ const PublicPage = ({ user, userData, darkMode, updateUserProfile }) => {
             setSelectedTemplate(template);
           }}
           darkMode={darkMode}
+          userData={userData}
+          links={links}
+          socialLinks={socialLinks}
+          tags={tags}
         />
 
         {/* Add Save Template button */}
@@ -198,18 +168,6 @@ const PublicPage = ({ user, userData, darkMode, updateUserProfile }) => {
             <FaSave className="mr-2" />
             Save Template
           </button>
-        </div>
-
-        {/* Preview section */}
-        <div className="mt-12 rounded-lg shadow-lg overflow-hidden">
-          <h3 className="text-3xl font-semibold mb-8 text-center">Page Preview</h3>
-          <TemplateComponent
-            userData={userData}
-            links={links}
-            socialLinks={socialLinks}
-            tags={tags}
-            darkMode={darkMode}
-          />
         </div>
 
         {/* UI elements for user input */}
