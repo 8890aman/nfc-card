@@ -2,7 +2,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheckCircle, faShoppingCart } from '@fortawesome/free-solid-svg-icons'
 import { motion } from 'framer-motion'
 import AnimatedBackground from '../utils/AnimatedBackground';
-import Qrimage from "../../assets/images/NFC-Card-removebg-preview.png"
+import Qrimage from "../../assets/images/WhatsApp Image 2024-07-15 at 4.54.32 PM.jpeg"
 
 const Product = ({ image, title, description, features, price }) => {
   return (

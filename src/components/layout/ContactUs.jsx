@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import geodata from "../../assets/geodata/in.json";
 import {
   faEnvelope,
   faPhone,
