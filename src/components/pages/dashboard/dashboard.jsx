@@ -228,6 +228,13 @@ const Dashboard = () => {
 const handlePhotoUpload = async (e) => {
   const file = e.target.files[0];
   if (file) {
+    // Check if the file is a JPEG
+    if (file.type !== 'image/jpeg') {
+      console.error("Only JPEG images are allowed");
+      // Optionally, show an error message to the user
+      return;
+    }
+
     try {
       // Compress the image
       const options = {
@@ -236,12 +243,6 @@ const handlePhotoUpload = async (e) => {
         useWebWorker: true,
       };
       const compressedFile = await imageCompression(file, options);
-
-      // Delete the old image if it exists
-      if (userData.photoURL) {
-        const oldImageRef = ref(storage, userData.photoURL);
-        await deleteObject(oldImageRef);
-      }
 
       const storageRef = ref(storage, `users/${user.uid}/profile_picture`);
       const snapshot = await uploadBytes(storageRef, compressedFile);
@@ -356,7 +357,16 @@ const handlePhotoUpload = async (e) => {
       >
         <div className="flex flex-col h-full">
           <div className="p-5">
-            <h2 className="text-2xl font-bold mb-6">Dashboard</h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">Dashboard</h2>
+              {/* Close button for mobile */}
+              <button
+                onClick={toggleSidebar}
+                className="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <FaTimes className="w-6 h-6" />
+              </button>
+            </div>
             <nav className="space-y-2">
               <SidebarLink 
                 icon={<FaUser />} 
@@ -701,6 +711,7 @@ const UserProfile = ({ user, userData, darkMode, setShowPhotoUploadModal, update
     </div>
   );
 };
+
 
 const EditProfileModal = ({ darkMode, userData, onClose, onSave }) => {
   const [formData, setFormData] = useState({

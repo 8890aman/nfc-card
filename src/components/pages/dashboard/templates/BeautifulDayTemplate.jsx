@@ -1,32 +1,81 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaFacebook, FaLinkedin, FaDiscord, FaMedium, FaAt, FaTwitter, FaInstagram, FaUser, FaPhone, FaQrcode, FaUserCircle, FaGithub, FaYoutube, FaCalendar, FaChevronDown, FaChevronUp, FaGlobe, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
-import { QRCodeSVG } from 'qrcode.react';
+import {
+  FaFacebook,
+  FaLinkedin,
+  FaDiscord,
+  FaMedium,
+  FaAt,
+  FaTwitter,
+  FaInstagram,
+  FaUser,
+  FaPhone,
+  FaQrcode,
+  FaUserCircle,
+  FaGithub,
+  FaYoutube,
+  FaCalendar,
+  FaChevronDown,
+  FaChevronUp,
+  FaGlobe,
+  FaShoppingCart,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
+import { QRCodeSVG } from "qrcode.react";
 import { Carousel } from "@material-tailwind/react";
-import video from '../../../../assets/video/WhatsApp Video 2024-07-20 at 2.13.51 PM.mp4';
+import video from "../../../../assets/video/WhatsApp Video 2024-07-20 at 2.13.51 PM.mp4";
 // Define NavButton component before BeautifulDayTemplate
 const NavButton = ({ icon: Icon, isSelected, onClick }) => (
-  <button
-    className="group flex flex-col items-center"
-    onClick={onClick}
-  >
+  <button className="group flex flex-col items-center" onClick={onClick}>
     <div
-      className={`p-3 rounded-full ${isSelected ? 'bg-white' : 'bg-white/10'} group-hover:bg-white/20 transition-all duration-300`}
+      className={`p-3 rounded-full ${
+        isSelected ? "bg-white" : "bg-white/10"
+      } group-hover:bg-white/20 transition-all duration-300`}
     >
-      <Icon className={`text-2xl ${isSelected ? 'text-black' : 'text-white'} group-hover:text-white transition-colors duration-300`} />
+      <Icon
+        className={`text-2xl ${
+          isSelected ? "text-black" : "text-white"
+        } group-hover:text-white transition-colors duration-300`}
+      />
     </div>
   </button>
 );
 
-const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerClassName, faqs = [], products = [] }) => {
+const BeautifulDayTemplate = ({
+  userData,
+  links,
+  socialLinks,
+  tags,
+  containerClassName,
+  faqs = [],
+  products = [],
+}) => {
+  const saveContact = () => {
+    const vCard = `BEGIN:VCARD
+VERSION:3.0
+FN:${userData.displayName}
+TEL:${userData.mobileNumber || ""}
+EMAIL:${userData.email}
+END:VCARD`;
+    const blob = new Blob([vCard], { type: "text/vcard" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${userData.displayName}.vcf`;
+    document.body.appendChild(a); // Append the anchor to the body
+    a.click();
+    document.body.removeChild(a); // Remove the anchor from the body
+    URL.revokeObjectURL(url);
+  };
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const [showQR, setShowQR] = useState(false);
-  const [selectedNavItem, setSelectedNavItem] = useState('profile');
+  const [selectedNavItem, setSelectedNavItem] = useState("profile");
   const [showMeetingModal, setShowMeetingModal] = useState(false);
-  const [email, setEmail] = useState('');
-  const [appointmentTime, setAppointmentTime] = useState('');
-  const [name, setName] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
+  const [email, setEmail] = useState("");
+  const [appointmentTime, setAppointmentTime] = useState("");
+  const [name, setName] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
 
   const toggleFaq = (index) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -34,9 +83,9 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
 
   const handleNavClick = (item) => {
     setSelectedNavItem(item);
-    if (item === 'qr') {
+    if (item === "qr") {
       setShowQR(true);
-    } else if (item === 'meeting') {
+    } else if (item === "meeting") {
       setShowMeetingModal(true);
     } else {
       setShowQR(false);
@@ -59,10 +108,10 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
     window.location.href = `mailto:${userData.email}?subject=${subject}&body=${body}`;
 
     setShowMeetingModal(false);
-    setName('');
-    setEmail('');
-    setContactNumber('');
-    setAppointmentTime('');
+    setName("");
+    setEmail("");
+    setContactNumber("");
+    setAppointmentTime("");
   };
 
   const getCurrentDateTime = () => {
@@ -119,7 +168,11 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
             <div className="absolute inset-1 bg-black rounded-full"></div>
             <div className="absolute inset-2 rounded-full overflow-hidden">
               {userData.photoURL ? (
-                <img src={userData.photoURL} alt="Profile" className="w-full h-full object-cover" />
+                <img
+                  src={userData.photoURL}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-blue-400">
                   <FaUser className="w-10 h-10 text-white" />
@@ -127,7 +180,7 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
               )}
             </div>
           </div>
-          
+
           {/* Name */}
           <h2 className="text-2xl font-bold text-center mb-2 text-white">
             {userData.displayName}
@@ -135,7 +188,9 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
 
           {/* Bio section */}
           <div className="mb-6">
-            <p className="text-sm text-center mb-2 text-gray-300">{userData.tagline}</p>
+            <p className="text-sm text-center mb-2 text-gray-300">
+              {userData.tagline}
+            </p>
             <p className="text-sm text-center text-white">{userData.bio}</p>
           </div>
 
@@ -153,31 +208,50 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
 
           {/* Social icons */}
           <div className="flex justify-center space-x-4 mb-8">
-            {Object.entries(socialLinks).filter(([_, link]) => link).map(([platform, link], index) => {
-              let Icon;
-              switch (platform) {
-                case 'instagram': Icon = FaInstagram; break;
-                case 'facebook': Icon = FaFacebook; break;
-                case 'twitter': Icon = FaTwitter; break;
-                case 'linkedin': Icon = FaLinkedin; break;
-                case 'github': Icon = FaGithub; break;
-                case 'youtube': Icon = FaYoutube; break;
-                case 'discord': Icon = FaDiscord; break;
-                case 'medium': Icon = FaMedium; break;
-                default: Icon = FaGlobe;
-              }
-              return (
-                <a
-                  key={index}
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-8 h-8 border border-white rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-colors duration-300"
-                >
-                  <Icon />
-                </a>
-              );
-            })}
+            {Object.entries(socialLinks)
+              .filter(([_, link]) => link)
+              .map(([platform, link], index) => {
+                let Icon;
+                switch (platform) {
+                  case "instagram":
+                    Icon = FaInstagram;
+                    break;
+                  case "facebook":
+                    Icon = FaFacebook;
+                    break;
+                  case "twitter":
+                    Icon = FaTwitter;
+                    break;
+                  case "linkedin":
+                    Icon = FaLinkedin;
+                    break;
+                  case "github":
+                    Icon = FaGithub;
+                    break;
+                  case "youtube":
+                    Icon = FaYoutube;
+                    break;
+                  case "discord":
+                    Icon = FaDiscord;
+                    break;
+                  case "medium":
+                    Icon = FaMedium;
+                    break;
+                  default:
+                    Icon = FaGlobe;
+                }
+                return (
+                  <a
+                    key={index}
+                    href={link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-8 h-8 border border-white rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-colors duration-300"
+                  >
+                    <Icon />
+                  </a>
+                );
+              })}
             {userData.email && (
               <a
                 href={`mailto:${userData.email}`}
@@ -203,8 +277,6 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
               </a>
             ))}
           </div>
-
-
 
           {/* FAQ Section */}
           <div className="mt-4">
@@ -237,13 +309,15 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
               </div>
             ))}
           </div>
-                    {/* Products Section */}
-                    {products.length > 0 && (
+          {/* Products Section */}
+          {products.length > 0 && (
             <div className="mt-8 w-full">
-              <h3 className="text-2xl font-bold text-center mb-4 text-white">Products</h3>
+              <h3 className="text-2xl font-bold text-center mb-4 text-white">
+                Products
+              </h3>
               <Carousel
                 className="rounded-xl"
-                prevArrow={({ handlePrev }) => (
+                prevArrow={({ handlePrev }) =>
                   products.length > 1 && (
                     <button
                       onClick={handlePrev}
@@ -252,8 +326,8 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
                       <FaChevronLeft />
                     </button>
                   )
-                )}
-                nextArrow={({ handleNext }) => (
+                }
+                nextArrow={({ handleNext }) =>
                   products.length > 1 && (
                     <button
                       onClick={handleNext}
@@ -262,15 +336,28 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
                       <FaChevronRight />
                     </button>
                   )
-                )}
+                }
               >
                 {products.map((product, index) => (
-                  <div key={index} className="h-full flex flex-col items-center justify-center p-4">
-                    <img src={product.imageUrl} alt={product.name} className="w-full h-64 object-cover rounded-lg mb-4" />
-                    <h4 className="text-xl font-semibold mb-2 text-white">{product.name}</h4>
-                    <p className="text-sm mb-2 text-gray-300 max-h-20 overflow-y-auto">{product.description}</p>
+                  <div
+                    key={index}
+                    className="h-full flex flex-col items-center justify-center p-4"
+                  >
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="w-full h-64 object-cover rounded-lg mb-4"
+                    />
+                    <h4 className="text-xl font-semibold mb-2 text-white">
+                      {product.name}
+                    </h4>
+                    <p className="text-sm mb-2 text-gray-300 max-h-20 overflow-y-auto">
+                      {product.description}
+                    </p>
                     <div className="flex flex-col items-center w-full mt-auto">
-                      <span className="text-lg font-bold text-white mb-2">₹{product.price}</span>
+                      <span className="text-lg font-bold text-white mb-2">
+                        ₹{product.price}
+                      </span>
                       <a
                         href={product.buyUrl}
                         target="_blank"
@@ -293,10 +380,25 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
       <div className="relative bottom-0 left-0 right-0 bg-black bg-opacity-50 backdrop-blur-sm z-30">
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex justify-around items-center">
-            <NavButton icon={FaPhone} isSelected={selectedNavItem === 'phone'} onClick={() => handleNavClick('phone')} />
-            <NavButton icon={FaUserCircle} isSelected={selectedNavItem === 'profile'} onClick={() => handleNavClick('profile')} />
-            <NavButton icon={FaQrcode} isSelected={selectedNavItem === 'qr'} onClick={() => handleNavClick('qr')} />
-            <NavButton icon={FaCalendar} isSelected={selectedNavItem === 'meeting'} onClick={() => handleNavClick('meeting')} />
+            <NavButton
+              icon={FaPhone}
+              onClick={() => handleNavClick(saveContact)}
+            />
+            <NavButton
+              icon={FaUserCircle}
+              isSelected={selectedNavItem === "profile"}
+              onClick={() => handleNavClick("profile")}
+            />
+            <NavButton
+              icon={FaQrcode}
+              isSelected={selectedNavItem === "qr"}
+              onClick={() => handleNavClick("qr")}
+            />
+            <NavButton
+              icon={FaCalendar}
+              isSelected={selectedNavItem === "meeting"}
+              onClick={() => handleNavClick("meeting")}
+            />
           </div>
         </div>
       </div>
@@ -319,7 +421,9 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
               onClick={(e) => e.stopPropagation()}
             >
               <QRCodeSVG value={window.location.href} size={200} />
-              <p className="mt-4 text-center text-gray-700">Scan to view this profile</p>
+              <p className="mt-4 text-center text-gray-700">
+                Scan to view this profile
+              </p>
             </motion.div>
           </motion.div>
         )}
@@ -342,10 +446,14 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
               exit={{ scale: 0.8, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-bold mb-4 text-gray-800">Schedule a Meeting</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-800">
+                Schedule a Meeting
+              </h2>
               <form onSubmit={handleMeetingSubmit}>
                 <div className="mb-4">
-                  <label htmlFor="name" className="block text-gray-700 mb-2">Name</label>
+                  <label htmlFor="name" className="block text-gray-700 mb-2">
+                    Name
+                  </label>
                   <input
                     type="text"
                     id="name"
@@ -356,7 +464,9 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
                   />
                 </div>
                 <div className="mb-4">
-                  <label htmlFor="email" className="block text-gray-700 mb-2">Email</label>
+                  <label htmlFor="email" className="block text-gray-700 mb-2">
+                    Email
+                  </label>
                   <input
                     type="email"
                     id="email"
@@ -367,7 +477,12 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
                   />
                 </div>
                 <div className="mb-4">
-                  <label htmlFor="contactNumber" className="block text-gray-700 mb-2">Contact Number</label>
+                  <label
+                    htmlFor="contactNumber"
+                    className="block text-gray-700 mb-2"
+                  >
+                    Contact Number
+                  </label>
                   <input
                     type="tel"
                     id="contactNumber"
@@ -378,7 +493,12 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
                   />
                 </div>
                 <div className="mb-4">
-                  <label htmlFor="appointmentTime" className="block text-gray-700 mb-2">Appointment Time</label>
+                  <label
+                    htmlFor="appointmentTime"
+                    className="block text-gray-700 mb-2"
+                  >
+                    Appointment Time
+                  </label>
                   <input
                     type="datetime-local"
                     id="appointmentTime"
@@ -400,7 +520,6 @@ const BeautifulDayTemplate = ({ userData, links, socialLinks, tags, containerCla
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
   );
 };

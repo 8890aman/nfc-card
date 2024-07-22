@@ -1,3 +1,5 @@
+/* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */
 import React, { useRef, useState, useEffect, Suspense } from 'react';
 import { motion, AnimatePresence } from "framer-motion";
 import { useSpring, animated } from 'react-spring';
@@ -15,11 +17,30 @@ const StormTemplate = ({ userData, links, socialLinks, tags, containerClassName,
   const [appointmentTime, setAppointmentTime] = useState('');
   const [name, setName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
+  const saveContact = () => {
+    const vCard = `BEGIN:VCARD
+VERSION:3.0
+FN:${userData.displayName}
+TEL:${userData.mobileNumber || ''}
+EMAIL:${userData.email}
+END:VCARD`;
+    const blob = new Blob([vCard], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${userData.displayName}.vcf`;
+    document.body.appendChild(a); // Append the anchor to the body
+    a.click();
+    document.body.removeChild(a); // Remove the anchor from the body
+    URL.revokeObjectURL(url);
+  };
 
   const handleNavClick = (item) => {
     setSelectedNavItem(item);
     if (item === 'qr') {
       setShowQR(true);
+    } else if (item === 'phone') {
+      saveContact();
     } else if (item === 'meeting') {
       setShowMeetingModal(true);
     } else {
@@ -318,7 +339,7 @@ const StormTemplate = ({ userData, links, socialLinks, tags, containerClassName,
       >
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex justify-around items-center">
-            <NavButton icon={FaPhone} isSelected={selectedNavItem === 'phone'} onClick={() => handleNavClick('phone')} />
+            <NavButton icon={FaPhone} isSelected={selectedNavItem === 'phone'} onClick={saveContact}  className="z-50"/>
             <NavButton icon={FaUserCircle} isSelected={selectedNavItem === 'profile'} onClick={() => handleNavClick('profile')} />
             <NavButton icon={FaQrcode} isSelected={selectedNavItem === 'qr'} onClick={() => handleNavClick('qr')} />
             <NavButton icon={FaCalendar} isSelected={selectedNavItem === 'meeting'} onClick={() => handleNavClick('meeting')} />

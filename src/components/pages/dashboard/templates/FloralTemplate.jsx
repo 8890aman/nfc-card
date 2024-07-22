@@ -16,7 +16,23 @@ const FloralTemplate = ({ userData, links, socialLinks, tags, containerClassName
   const [appointmentTime, setAppointmentTime] = useState('');
   const [name, setName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
-
+  const saveContact = () => {
+    const vCard = `BEGIN:VCARD
+VERSION:3.0
+FN:${userData.displayName}
+TEL:${userData.mobileNumber || ''}
+EMAIL:${userData.email}
+END:VCARD`;
+    const blob = new Blob([vCard], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${userData.displayName}.vcf`;
+    document.body.appendChild(a); // Append the anchor to the body
+    a.click();
+    document.body.removeChild(a); // Remove the anchor from the body
+    URL.revokeObjectURL(url);
+  };
   const toggleFaq = (index) => {
     setOpenFaqIndex(openFaqIndex === index ? null : index);
   };
@@ -449,7 +465,7 @@ const FloralTemplate = ({ userData, links, socialLinks, tags, containerClassName
       >
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex justify-around items-center">
-            <NavButton icon={FaPhone} isSelected={selectedNavItem === 'phone'} onClick={() => handleNavClick('phone')} />
+            <NavButton icon={FaPhone} isSelected={selectedNavItem === 'phone'} onClick={() => handleNavClick(saveContact)} />
             <NavButton icon={FaUserCircle} isSelected={selectedNavItem === 'profile'} onClick={() => handleNavClick('profile')} />
             <NavButton icon={FaQrcode} isSelected={selectedNavItem === 'qr'} onClick={() => handleNavClick('qr')} />
             <NavButton icon={FaCalendar} isSelected={selectedNavItem === 'meeting'} onClick={() => handleNavClick('meeting')} />
