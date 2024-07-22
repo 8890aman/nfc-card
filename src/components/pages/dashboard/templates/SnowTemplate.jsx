@@ -108,15 +108,7 @@ END:VCARD`;
         Your browser does not support the video tag.
       </video>
 
-      {/* Fallback image for devices that don't support video autoplay */}
-      {/* <div 
-        className="absolute inset-0 bg-cover bg-center z-0"
-        style={{
-          backgroundImage: `url(${require('../../../../assets/images/snow-fallback.jpg')})`,
-          display: 'none',
-        }}
-      ></div> */}
-
+    
       {/* Overlay to darken the background */}
       <div className="absolute inset-0 bg-black opacity-30"></div>
 

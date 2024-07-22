@@ -5,6 +5,8 @@ import { FaGlobe, FaPlus, FaInstagram, FaFacebook, FaTwitter, FaLinkedin, FaYout
 import TemplateSelector from './TemplateSelector';
 import { doc, setDoc, collection, addDoc, serverTimestamp, query, where, getDocs, limit, deleteDoc, orderBy, increment } from 'firebase/firestore';
 import { db } from '../../../firebaseConfig';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import imageCompression from 'browser-image-compression';
 
 const PublicPage = ({ user, userData, darkMode, updateUserProfile }) => {
   const [selectedTemplate, setSelectedTemplate] = useState(userData.template || 'dark');
@@ -23,6 +25,7 @@ const PublicPage = ({ user, userData, darkMode, updateUserProfile }) => {
   const [openSection, setOpenSection] = useState('tags');
   const [faqs, setFaqs] = useState(userData.templateData?.faqs || []);
   const [products, setProducts] = useState(userData.templateData?.products || []);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleOpenUrl = () => {
     const baseUrl = window.location.origin;
@@ -92,7 +95,11 @@ const PublicPage = ({ user, userData, darkMode, updateUserProfile }) => {
   };
 
   const addProduct = () => {
-    setProducts([...products, { name: '', description: '', price: '', imageUrl: '', buyUrl: '' }]);
+    if (products.length < 20) {
+      setProducts([...products, { name: '', description: '', price: '', imageUrl: '', buyUrl: '' }]);
+    } else {
+      alert('Maximum limit of 20 products reached.');
+    }
   };
 
   const updateProduct = (index, field, value) => {
@@ -106,6 +113,40 @@ const PublicPage = ({ user, userData, darkMode, updateUserProfile }) => {
     setProducts(newProducts);
   };
 
+  const compressImage = async (imageFile) => {
+    const options = {
+      maxSizeMB: 0.1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true
+    };
+    try {
+      return await imageCompression(imageFile, options);
+    } catch (error) {
+      console.error("Error compressing image:", error);
+      return null;
+    }
+  };
+
+  const uploadImage = async (file) => {
+    if (!file) return null;
+    setIsUploading(true);
+    try {
+      const compressedFile = await compressImage(file);
+      if (!compressedFile) throw new Error("Image compression failed");
+
+      const storage = getStorage();
+      const storageRef = ref(storage, `product_images/${user.uid}/${file.name}`);
+      await uploadBytes(storageRef, compressedFile);
+      const downloadURL = await getDownloadURL(storageRef);
+      setIsUploading(false);
+      return downloadURL;
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setIsUploading(false);
+      return null;
+    }
+  };
+
   const saveTemplate = async () => {
     try {
       const templateData = {
@@ -114,7 +155,7 @@ const PublicPage = ({ user, userData, darkMode, updateUserProfile }) => {
         socialLinks,
         tags,
         faqs,
-        products, // Add products to templateData
+        products,
         updatedAt: new Date()
       };
       console.log('Saving template data:', templateData);
@@ -384,10 +425,14 @@ const PublicPage = ({ user, userData, darkMode, updateUserProfile }) => {
                                   />
                                 </div>
                                 <input
-                                  type="url"
-                                  placeholder="Image URL"
-                                  value={product.imageUrl}
-                                  onChange={(e) => updateProduct(index, 'imageUrl', e.target.value)}
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={async (e) => {
+                                    const downloadURL = await uploadImage(e.target.files[0]);
+                                    if (downloadURL) {
+                                      updateProduct(index, 'imageUrl', downloadURL);
+                                    }
+                                  }}
                                   className={`p-2 rounded-lg w-full border-2 ${darkMode ? 'bg-gray-600 border-gray-500 text-white' : 'bg-white border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                                 />
                                 <input

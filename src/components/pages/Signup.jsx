@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EnvelopeIcon, LockClosedIcon, EyeIcon, EyeSlashIcon, PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/solid';
@@ -20,9 +20,31 @@ const SignUp = ({ darkMode, setDarkMode }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
+  const [unlockPassword, setUnlockPassword] = useState('');
+
+  useEffect(() => {
+    document.body.style.overflow = isLocked ? 'hidden' : 'unset';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isLocked]);
+
+  const handleUnlock = (e) => {
+    e.preventDefault();
+    if (unlockPassword === 'Millie@001') {
+      setIsLocked(false);
+    } else {
+      alert('Incorrect password');
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isLocked) {
+      alert('Please unlock the page before signing up.');
+      return;
+    }
     if (password !== confirmPassword) {
       console.error("Passwords don't match");
       return;
@@ -63,6 +85,10 @@ const SignUp = ({ darkMode, setDarkMode }) => {
   };
 
   const handleGoogleSignUp = async () => {
+    if (isLocked) {
+      alert('Please unlock the page before signing up.');
+      return;
+    }
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
@@ -115,137 +141,165 @@ const SignUp = ({ darkMode, setDarkMode }) => {
 
   return (
     <div className={`min-h-screen flex items-center justify-center bg-white dark:bg-black transition-colors duration-300 overflow-hidden`}>
-      <CursorBlobsBackground darkMode={darkMode} />
-      <AnimatedBackground />
-      <div className="absolute inset-0 bg-white dark:bg-black bg-opacity-50 dark:bg-opacity-50 backdrop-blur-2xl z-0"></div>
-      
-      <motion.div 
-        className="container mx-auto px-4 relative z-20 flex flex-col items-center justify-center"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <motion.div 
-          className={`w-full max-w-md bg-green-50 dark:bg-green-900 bg-opacity-20 dark:bg-opacity-20 backdrop-filter backdrop-blur-xl p-8 rounded-lg shadow-xl relative overflow-hidden`}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <AnimatedBackground />
-          <div className="relative">
-            <AnimatePresence>
-              {isSuccess && (
-                <motion.div
-                  className="absolute top-0 left-0 right-0 bg-green-500 text-white p-4 rounded-t-lg z-10"
-                  variants={successVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="exit"
-                >
-                  <motion.h2 
-                    className="text-center text-xl font-bold"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2, duration: 0.5 }}
-                  >
-                    Account created successfully!
-                  </motion.h2>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-green-400' : 'text-green-600'}`}>Create Account</h2>
-            <p className={`${darkMode ? 'text-green-300' : 'text-green-700'} mb-8`}>Sign up for a new account</p>
-
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4 relative">
-                <EnvelopeIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
-                <input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 ${darkMode ? 'bg-green-800 text-green-200' : 'bg-green-50 text-green-800'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
-                  required
-                />
-              </div>
-              <div className="mb-4 relative">
-                <LockClosedIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full pl-10 pr-10 py-3 ${darkMode ? 'bg-green-800 text-green-200' : 'bg-green-50 text-green-800'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-green-400' : 'text-green-600'}`}
-                >
-                  {showPassword ? (
-                    <EyeSlashIcon className="h-5 w-5" />
-                  ) : (
-                    <EyeIcon className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-              <div className="mb-6 relative">
-                <LockClosedIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full pl-10 pr-10 py-3 ${darkMode ? 'bg-green-800 text-green-200' : 'bg-green-50 text-green-800'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
-                  required
-                />
-              </div>
-              <motion.button
+      {isLocked ? (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl"
+          >
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Enter Password to Unlock</h2>
+            <form onSubmit={handleUnlock} className="space-y-4">
+              <input
+                type="password"
+                value={unlockPassword}
+                onChange={(e) => setUnlockPassword(e.target.value)}
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Enter password"
+                required
+              />
+              <button
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md transition duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-300"
               >
-                Sign Up
-              </motion.button>
+                Unlock
+              </button>
             </form>
+          </motion.div>
+        </div>
+      ) : (
+        <motion.div 
+          className="container mx-auto px-4 relative z-20 flex flex-col items-center justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.div 
+            className={`w-full max-w-md bg-green-50 dark:bg-green-900 bg-opacity-20 dark:bg-opacity-20 backdrop-filter backdrop-blur-xl p-8 rounded-lg shadow-xl relative overflow-hidden`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <AnimatedBackground />
+            <div className="relative">
+              <AnimatePresence>
+                {isSuccess && (
+                  <motion.div
+                    className="absolute top-0 left-0 right-0 bg-green-500 text-white p-4 rounded-t-lg z-10"
+                    variants={successVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                  >
+                    <motion.h2 
+                      className="text-center text-xl font-bold"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2, duration: 0.5 }}
+                    >
+                      Account created successfully!
+                    </motion.h2>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            <div className="mt-8">
-              <p className={`text-center ${darkMode ? 'text-green-300' : 'text-green-700'} mb-4`}>Or sign up with</p>
-              <div className="flex justify-center space-x-4">
+              <h2 className={`text-3xl font-bold mb-6 ${darkMode ? 'text-green-400' : 'text-green-600'}`}>Create Account</h2>
+              <p className={`${darkMode ? 'text-green-300' : 'text-green-700'} mb-8`}>Sign up for a new account</p>
+
+              <form onSubmit={handleSubmit}>
+                <div className="mb-4 relative">
+                  <EnvelopeIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`w-full pl-10 pr-4 py-3 ${darkMode ? 'bg-green-800 text-green-200' : 'bg-green-50 text-green-800'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    required
+                  />
+                </div>
+                <div className="mb-4 relative">
+                  <LockClosedIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className={`w-full pl-10 pr-10 py-3 ${darkMode ? 'bg-green-800 text-green-200' : 'bg-green-50 text-green-800'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${darkMode ? 'text-green-400' : 'text-green-600'}`}
+                  >
+                    {showPassword ? (
+                      <EyeSlashIcon className="h-5 w-5" />
+                    ) : (
+                      <EyeIcon className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+                <div className="mb-6 relative">
+                  <LockClosedIcon className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Confirm Password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className={`w-full pl-10 pr-10 py-3 ${darkMode ? 'bg-green-800 text-green-200' : 'bg-green-50 text-green-800'} rounded-md focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    required
+                  />
+                </div>
                 <motion.button
-                  onClick={handleGoogleSignUp}
-                  className={`p-2 rounded-full ${darkMode ? 'bg-green-800' : 'bg-green-50'} hover:bg-opacity-80`}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  type="submit"
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md transition duration-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <FontAwesomeIcon icon={faGoogle} className={`text-xl ${darkMode ? 'text-green-200' : 'text-green-800'}`} />
+                  Sign Up
                 </motion.button>
-                {[
-                  { icon: faApple, color: darkMode ? 'text-gray-200' : 'text-gray-800' },
-                  { icon: faFacebook, color: 'text-blue-600' },
-                ].map((social, index) => (
+              </form>
+
+              <div className="mt-8">
+                <p className={`text-center ${darkMode ? 'text-green-300' : 'text-green-700'} mb-4`}>Or sign up with</p>
+                <div className="flex justify-center space-x-4">
                   <motion.button
-                    key={index}
+                    onClick={handleGoogleSignUp}
                     className={`p-2 rounded-full ${darkMode ? 'bg-green-800' : 'bg-green-50'} hover:bg-opacity-80`}
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <FontAwesomeIcon icon={social.icon} className={`text-xl ${social.color}`} />
+                    <FontAwesomeIcon icon={faGoogle} className={`text-xl ${darkMode ? 'text-green-200' : 'text-green-800'}`} />
                   </motion.button>
-                ))}
+                  {[
+                    { icon: faApple, color: darkMode ? 'text-gray-200' : 'text-gray-800' },
+                    { icon: faFacebook, color: 'text-blue-600' },
+                  ].map((social, index) => (
+                    <motion.button
+                      key={index}
+                      className={`p-2 rounded-full ${darkMode ? 'bg-green-800' : 'bg-green-50'} hover:bg-opacity-80`}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <FontAwesomeIcon icon={social.icon} className={`text-xl ${social.color}`} />
+                    </motion.button>
+                  ))}
+                </div>
               </div>
+
+              <p className={`mt-8 text-center ${darkMode ? 'text-green-300' : 'text-green-700'}`}>
+                Already have an account? <a href="#" className={`${darkMode ? 'text-green-400' : 'text-green-600'} hover:underline`}>Sign in</a>
+              </p>
             </div>
-
-            <p className={`mt-8 text-center ${darkMode ? 'text-green-300' : 'text-green-700'}`}>
-              Already have an account? <a href="#" className={`${darkMode ? 'text-green-400' : 'text-green-600'} hover:underline`}>Sign in</a>
-            </p>
-          </div>
+          </motion.div>
         </motion.div>
-      </motion.div>
-
+      )}
+      
+      <CursorBlobsBackground darkMode={darkMode} />
+      <AnimatedBackground />
+      <div className="absolute inset-0 bg-white dark:bg-black bg-opacity-50 dark:bg-opacity-50 backdrop-blur-2xl z-0"></div>
+      
       <button
         onClick={() => setDarkMode(!darkMode)}
         className={`fixed top-4 right-4 p-2 rounded-full ${
