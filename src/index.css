@@ -32,7 +32,13 @@
   .has-scroll-smooth [data-scroll-container] {
     min-height: 100vh;
   }
-  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
   .wifi-loader {
     width: 50px;
     height: 50px;
@@ -112,5 +118,4 @@
       transform: translate(-50%, -50%) rotate(360deg);
     }
   }
-  
   

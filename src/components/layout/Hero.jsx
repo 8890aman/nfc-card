@@ -21,7 +21,7 @@ function Hero() {
           animate={isInView ? { scale: [0.9, 1], opacity: [0, 1] } : { scale: 0.9, opacity: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          Next-Gen <span className="text-green-500 dark:text-green-300">NFC Business Cards</span>
+          Next-Gen <span className="text-green-500 dark:text-green-300">Business Cards</span>
         </motion.h1>
         <motion.p
           className="text-xl mb-10 max-w-2xl mx-auto text-green-700 dark:text-green-300"

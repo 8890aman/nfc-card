@@ -12,8 +12,8 @@ const AboutUs = () => {
   ];
 
   const additionalSections = [
-    { icon: faHistory, title: "Our History", content: "Founded in 2015, NeoTech has been at the forefront of NFC technology innovation. What started as a small startup has grown into a global leader in digital networking solutions." },
-    { icon: faAward, title: "Our Achievements", content: "With over 50 patents and numerous industry awards, NeoTech has consistently pushed the boundaries of what's possible with NFC technology." },
+    { icon: faHistory, title: "Our History", content: "Founded in 2015, Zaptagch has been at the forefront of NFC technology innovation. What started as a small startup has grown into a global leader in digital networking solutions." },
+    { icon: faAward, title: "Our Achievements", content: "With over 50 patents and numerous industry awards, Zaptagch has consistently pushed the boundaries of what's possible with NFC technology." },
     { icon: faHandshake, title: "Our Partnerships", content: "We've collaborated with Fortune 500 companies, tech giants, and innovative startups to create seamless networking experiences across various industries." },
   ];
 
@@ -29,8 +29,7 @@ const AboutUs = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          About NeoTech
-        </motion.h2>
+          About Zaptag        </motion.h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {aboutItems.map((item, index) => (
@@ -59,7 +58,7 @@ const AboutUs = () => {
           transition={{ duration: 0.5, delay: 0.5 }}
         >
           <p className="text-lg text-green-700 dark:text-green-300 mb-6">
-            At NeoTech, we're not just creating NFC business cards; we're redefining professional networking for the digital age.
+            At Zaptagch, we're not just creating NFC business cards; we're redefining professional networking for the digital age.
           </p>
           <motion.button 
             className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full transition duration-300"

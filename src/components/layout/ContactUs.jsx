@@ -82,11 +82,11 @@ const ContactUs = () => {
   };
 
   const contactInfo = [
-    { icon: faEnvelope, text: "contact@neotech.com" },
+    { icon: faEnvelope, text: "contact@Zaptagch.com" },
     { icon: faPhone, text: "+1 (555) 123-4567" },
     { icon: faMapMarkerAlt, text: "123 Tech Street, Silicon Valley, CA" },
     { icon: faClock, text: "Mon-Fri: 9AM-6PM (PST)" },
-    { icon: faGlobe, text: "www.neotech.com" },
+    { icon: faGlobe, text: "www.Zaptagch.com" },
   ];
 
   const containerVariants = {
@@ -122,12 +122,11 @@ const ContactUs = () => {
   const [globeReady, setGlobeReady] = useState(false);
 
   useEffect(() => {
-    if (globeRef.current) {
-      const controls = globeRef.current.controls();
-      controls.autoRotate = !isHovering;
-      controls.autoRotateSpeed = 0.5;
+    if (globeRef.current && globeReady) {
+      // Set the point of view to India when the globe is ready
+      globeRef.current.pointOfView({ lat: 20.5937, lng: 78.9629, altitude: 2.5 }, 0);
     }
-  }, [globeReady, isHovering]);
+  }, [globeReady]);
 
   const updateRings = useCallback(() => {
     setRings((currentRings) => {
@@ -161,7 +160,9 @@ const ContactUs = () => {
         setIndiaFeature(indiaFeature);
 
         // Initialize the rings
-        setRings([{ lat: 26.9124, lng: 75.7873, maxR: 1, propagationSpeed: 1 }]);
+        setRings([
+          { lat: 26.9124, lng: 75.7873, maxR: 1, propagationSpeed: 1 },
+        ]);
       });
   }, []);
 
@@ -309,13 +310,12 @@ const ContactUs = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          
           <div className="flex justify-center space-x-6">
             {["facebook", "twitter", "linkedin", "instagram"].map(
               (social, index) => (
                 <motion.a
                   key={social}
-                  href={`https://${social}.com/neotech`}
+                  href={`https://${social}.com/Zaptagch`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
@@ -352,8 +352,7 @@ const ContactUs = () => {
                   onGlobeReady={() => setGlobeReady(true)}
                   width={800}
                   height={500}
-                  cameraDistance={200}
-                  initialCameraPosition={{ lat: 20, lng: 77, altitude: 1.5 }}
+                  pointOfView={{ lat: 20.5937, lng: 78.9629, altitude: 2.5 }}
                   polygonsData={countries}
                   polygonAltitude={0.01}
                   polygonCapColor={(d) => d.properties.ADMIN === "India" 
@@ -366,11 +365,11 @@ const ContactUs = () => {
                     ? "#22c55e"
                     : "rgba(20, 83, 45, 0.5)"}
                   polygonLabel={({ properties: { ADMIN } }) => `
-                    <div style="background-color: rgba(34, 197, 94, 0.8); color: white; padding: 10px; border-radius: 5px;">
-                      <strong>${ADMIN}</strong>
-                      ${ADMIN === "India" ? "<br/>Jaipur, India" : ""}
-                    </div>
-                  `}
+    <div style="background-color: rgba(34, 197, 94, 0.8); color: white; padding: 10px; border-radius: 5px;">
+      <strong>${ADMIN}</strong>
+      ${ADMIN === "India" ? "<br/>Jaipur, India" : ""}
+    </div>
+  `}
                   labelsData={[
                     {
                       lat: 26.9124,

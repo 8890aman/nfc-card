@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
@@ -5,7 +6,7 @@ import { auth, db, storage } from '../../../firebaseConfig';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaChartBar, FaClipboardList, FaBell, FaIdCard, FaGlobe, FaTags, FaClock, FaCamera, FaUpload, FaTrash, FaEdit, FaChevronRight, FaSignOutAlt, FaTimes, FaBars, FaQuoteLeft, FaEye, FaMousePointer, FaBullseye, FaMoneyBillWave, FaUsers, FaCalendarAlt, FaSpinner } from 'react-icons/fa';
 import { useNavigate, Link } from 'react-router-dom';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp, where, deleteDoc, increment } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { updateProfile } from 'firebase/auth';
 import AnimatedBackground from '../../utils/AnimatedBackground';
@@ -14,7 +15,10 @@ import { useDropzone } from 'react-dropzone';
 import { Chip } from "@material-tailwind/react";
 import Analytics from './Analytics';
 import PublicPage from './PublicPage';
+import { deleteObject } from 'firebase/storage';
+
 import StatCards from './StatCards';
+import imageCompression from 'browser-image-compression';
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
@@ -26,6 +30,39 @@ const calculateProfileCompletion = (data) => {
   const fields = ['bio', 'occupation', 'tags', 'photoURL'];
   const completedFields = fields.filter(field => data[field] && data[field].length > 0);
   return (completedFields.length / fields.length) * 100;
+};
+
+const Notifications = ({ notifications, darkMode, onDeleteNotification }) => {
+  return (
+    <div className={`rounded-lg overflow-hidden shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'} p-6`}>
+      <h2 className="text-2xl font-bold mb-4">Notifications</h2>
+      {notifications.length > 0 ? (
+        <ul className="space-y-4">
+          {notifications.map((notification) => (
+            <li key={notification.id} className={`p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} flex justify-between items-center`}>
+              <div>
+                <p className="font-semibold">{notification.message}</p>
+                <p className="text-sm text-gray-500">
+                  {notification.timestamp?.toDate().toLocaleString()}
+                </p>
+              </div>
+              <button
+                onClick={() => onDeleteNotification(notification.id)}
+                className={`p-1 rounded-full ${
+                  darkMode ? 'hover:bg-gray-500' : 'hover:bg-gray-300'
+                } transition-colors duration-200`}
+                title="Delete notification"
+              >
+                <FaTrash className="text-lg" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-gray-500 italic">No notifications yet.</p>
+      )}
+    </div>
+  );
 };
 
 const Dashboard = () => {
@@ -41,6 +78,8 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeComponent, setActiveComponent] = useState('profile');
+  const [notifications, setNotifications] = useState([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   // Read initial theme from localStorage or default to 'light'
   const [theme, setTheme] = useState(() => {
@@ -57,6 +96,7 @@ const Dashboard = () => {
       if (currentUser) {
         setUser(currentUser);
         await fetchUserData(currentUser.uid);
+        subscribeToNotifications(currentUser.uid);
       } else {
         setUser(null);
         setUserData(null);
@@ -66,6 +106,55 @@ const Dashboard = () => {
 
     return () => unsubscribe();
   }, [navigate]);
+
+  const subscribeToNotifications = (userId) => {
+    const notificationsRef = collection(db, "users", userId, "notifications");
+    const now = new Date();
+    const q = query(
+      notificationsRef,
+      where("expiresAt", ">", now),
+      orderBy("expiresAt", "desc"),
+      limit(20)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const newNotifications = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setNotifications(newNotifications);
+      
+      // Count unread notifications
+      const unreadCount = newNotifications.filter(n => !n.read).length;
+      setUnreadNotifications(unreadCount);
+
+      // Delete expired notifications
+      const batch = db.batch();
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.expiresAt.toDate() <= now) {
+          batch.delete(doc.ref);
+        }
+      });
+      batch.commit().catch(error => console.error("Error deleting expired notifications:", error));
+    });
+
+    return unsubscribe;
+  };
+
+  const markNotificationsAsRead = async () => {
+    if (user) {
+      const batch = db.batch();
+      notifications.forEach(notification => {
+        if (!notification.read) {
+          const notificationRef = doc(db, "users", user.uid, "notifications", notification.id);
+          batch.update(notificationRef, { read: true });
+        }
+      });
+      await batch.commit();
+      setUnreadNotifications(0);
+    }
+  };
 
   // Update localStorage when theme changes
   useEffect(() => {
@@ -91,6 +180,7 @@ const Dashboard = () => {
           occupation: '',
           tags: [],
           lastLogin: new Date(),
+          pageVisits: 0, // Initialize pageVisits
         };
         await setDoc(userDocRef, newUserData);
         setUserData(newUserData);
@@ -135,30 +225,45 @@ const Dashboard = () => {
     console.log(`Generating public profile with template: ${templateId}`);
   };
 
-  const handlePhotoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const storageRef = ref(storage, `users/${user.uid}/profile_picture`);
-      try {
-        const snapshot = await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        
-        // Update user profile
-        await updateProfile(auth.currentUser, { photoURL: downloadURL });
-        
-        // Update Firestore document
-        await updateUserProfile({ photoURL: downloadURL });
-        
-        // Update local state
-        setUserData(prevData => ({ ...prevData, photoURL: downloadURL }));
-        
-        setShowPhotoUploadModal(false);
-      } catch (error) {
-        console.error("Error uploading photo:", error);
-        // Optionally, show an error message to the user
+const handlePhotoUpload = async (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    try {
+      // Compress the image
+      const options = {
+        maxSizeMB: 0.15, // 150KB
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(file, options);
+
+      // Delete the old image if it exists
+      if (userData.photoURL) {
+        const oldImageRef = ref(storage, userData.photoURL);
+        await deleteObject(oldImageRef);
       }
+
+      const storageRef = ref(storage, `users/${user.uid}/profile_picture`);
+      const snapshot = await uploadBytes(storageRef, compressedFile);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      
+      // Update user profile
+      await updateProfile(auth.currentUser, { photoURL: downloadURL });
+      
+      // Update Firestore document
+      await updateUserProfile({ photoURL: downloadURL });
+      
+      // Update local state
+      setUserData(prevData => ({ ...prevData, photoURL: downloadURL }));
+      
+      setShowPhotoUploadModal(false);
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      // Optionally, show an error message to the user
     }
-  };
+  }
+};
+  
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -224,6 +329,16 @@ const Dashboard = () => {
     setSidebarOpen(prevState => !prevState);
   };
 
+  const deleteNotification = async (notificationId) => {
+    try {
+      const notificationRef = doc(db, "users", user.uid, "notifications", notificationId);
+      await deleteDoc(notificationRef);
+      setNotifications(notifications.filter(n => n.id !== notificationId));
+    } catch (error) {
+      console.error("Error deleting notification: ", error);
+    }
+  };
+
   return (
     <div className={`flex h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
       {/* Add the AnimatedBackground here with a lower z-index */}
@@ -239,58 +354,58 @@ const Dashboard = () => {
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
-        <button
-          onClick={toggleSidebar}
-          className="md:hidden absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-        >
-          <FaTimes className="w-6 h-6" />
-        </button>
-        <div className="p-5">
-          <h2 className="text-2xl font-bold mb-5">Dashboard</h2>
-          <nav>
-            <SidebarLink 
-              icon={<FaUser />} 
-              text="Profile" 
-              isActive={activeComponent === 'profile'}
-              onClick={() => setActiveComponent('profile')}
-            />
-            <SidebarLink 
-              icon={<FaChartBar />} 
-              text="Analytics" 
-              isActive={activeComponent === 'analytics'}
-              onClick={() => setActiveComponent('analytics')}
-            />
-            <SidebarLink 
-              icon={<FaBell />} 
-              text="Notifications" 
-              isActive={activeComponent === 'notifications'}
-              onClick={() => setActiveComponent('notifications')}
-            />
-            <SidebarLink 
-              icon={<FaGlobe />} 
-              text="Page" 
-              isActive={activeComponent === 'page'}
-              onClick={() => setActiveComponent('page')}
-            />
-          </nav>
-        </div>
-        <div className="absolute bottom-0 w-64 p-5">
-          <button
-            onClick={toggleTheme}
-            className={`flex items-center justify-center w-full ${
-              darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
-            } text-${darkMode ? 'white' : 'gray-800'} font-bold py-2 px-4 rounded-full transition duration-300 mb-4`}
-          >
-            {darkMode ? <MoonIcon className="w-5 h-5 mr-2" /> : <SunIcon className="w-5 h-5 mr-2" />}
-            {darkMode ? 'Dark Mode' : 'Light Mode'}
-          </button>
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-center w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition duration-300"
-          >
-            <FaSignOutAlt className="mr-2" />
-            Logout
-          </button>
+        <div className="flex flex-col h-full">
+          <div className="p-5">
+            <h2 className="text-2xl font-bold mb-6">Dashboard</h2>
+            <nav className="space-y-2">
+              <SidebarLink 
+                icon={<FaUser />} 
+                text="Profile" 
+                isActive={activeComponent === 'profile'}
+                onClick={() => setActiveComponent('profile')}
+              />
+              <SidebarLink 
+                icon={<FaChartBar />} 
+                text="Analytics" 
+                isActive={activeComponent === 'analytics'}
+                onClick={() => setActiveComponent('analytics')}
+              />
+              <SidebarLink 
+                icon={<FaBell />} 
+                text="Notifications" 
+                isActive={activeComponent === 'notifications'}
+                onClick={() => {
+                  setActiveComponent('notifications');
+                  markNotificationsAsRead();
+                }}
+                hasNotifications={unreadNotifications > 0}
+              />
+              <SidebarLink 
+                icon={<FaGlobe />} 
+                text="Page" 
+                isActive={activeComponent === 'page'}
+                onClick={() => setActiveComponent('page')}
+              />
+            </nav>
+          </div>
+          <div className="mt-auto p-5">
+            <button
+              onClick={toggleTheme}
+              className={`flex items-center justify-center w-full ${
+                darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'
+              } text-${darkMode ? 'white' : 'gray-800'} font-bold py-2 px-4 rounded-full transition duration-300 mb-4`}
+            >
+              {darkMode ? <MoonIcon className="w-5 h-5 mr-2" /> : <SunIcon className="w-5 h-5 mr-2" />}
+              {darkMode ? 'Dark Mode' : 'Light Mode'}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center justify-center w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-full transition duration-300"
+            >
+              <FaSignOutAlt className="mr-2" />
+              Logout
+            </button>
+          </div>
         </div>
       </div>
 
@@ -322,10 +437,14 @@ const Dashboard = () => {
             </>
           )}
           {activeComponent === 'analytics' && (
-            <Analytics darkMode={darkMode} />
+            <Analytics darkMode={darkMode} pageVisits={userData?.pageVisits || 0} />
           )}
           {activeComponent === 'notifications' && (
-            <div>Notifications Component (To be implemented)</div>
+            <Notifications 
+              notifications={notifications} 
+              darkMode={darkMode} 
+              onDeleteNotification={deleteNotification}
+            />
           )}
           {activeComponent === 'page' && (
             <PublicPage 
@@ -367,17 +486,20 @@ const Dashboard = () => {
   );
 };
 
-const SidebarLink = ({ icon, text, isActive, onClick }) => (
+const SidebarLink = ({ icon, text, isActive, onClick, hasNotifications }) => (
   <button
     onClick={onClick}
-    className={`flex items-center w-full py-2 px-4 text-left transition-colors duration-200 ${
+    className={`flex items-center w-full py-3 px-4 rounded-lg transition-colors duration-200 ${
       isActive
         ? 'bg-green-500 text-white'
-        : 'text-gray-600 hover:bg-gray-200'
-    } rounded`}
+        : 'text-gray-600 hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-700'
+    } relative`}
   >
-    {React.cloneElement(icon, { className: "mr-3" })}
-    <span>{text}</span>
+    {React.cloneElement(icon, { className: "w-5 h-5 mr-3" })}
+    <span className="font-medium">{text}</span>
+    {hasNotifications && (
+      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+    )}
   </button>
 );
 
@@ -776,7 +898,6 @@ const TemplateModal = ({ darkMode, onClose, onSelectTemplate }) => {
     </motion.div>
   );
 };
-
 
 const PhotoUploadModal = ({ darkMode, onClose, onUpload, fileInputRef }) => {
   const [previewImage, setPreviewImage] = useState(null);

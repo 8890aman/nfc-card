@@ -2,12 +2,19 @@
 /* eslint-disable no-unused-vars */
 import React, { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { FaFacebook, FaLinkedin, FaDiscord, FaMedium, FaAt, FaTwitter, FaUser, FaPhone, FaQrcode, FaUserCircle } from 'react-icons/fa';
+import { FaFacebook, FaLinkedin, FaDiscord, FaMedium, FaAt, FaTwitter, FaUser, FaPhone, FaQrcode, FaUserCircle, FaInstagram, FaGithub, FaYoutube, FaCalendar, FaChevronDown, FaChevronUp, FaGlobe, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { QRCodeSVG } from 'qrcode.react';
+import { Carousel } from "@material-tailwind/react";
 
-const BaseTemplate = ({ userData, links, socialLinks, tags, children, className, style }) => {
+const BaseTemplate = ({ userData, links, socialLinks, tags, children, className, style, faqs = [], products = [] }) => {
   const [showQR, setShowQR] = useState(false);
   const [selectedNavItem, setSelectedNavItem] = useState('profile');
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [email, setEmail] = useState('');
+  const [appointmentTime, setAppointmentTime] = useState('');
+  const [expandedFaq, setExpandedFaq] = useState(null);
+  const [name, setName] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
   const ref = useRef(null);
   const isInView = useInView(ref, { once: false });
 
@@ -65,9 +72,39 @@ const BaseTemplate = ({ userData, links, socialLinks, tags, children, className,
       setShowQR(true);
     } else if (item === 'phone') {
       saveContact();
+    } else if (item === 'meeting') {
+      setShowMeetingModal(true);
     } else {
       setShowQR(false);
+      setShowMeetingModal(false);
     }
+  };
+
+  const handleMeetingSubmit = (e) => {
+    e.preventDefault();
+    const subject = `Meeting Request from ${name}`;
+    const body = `
+      Name: ${name}
+      Email: ${email}
+      Contact Number: ${contactNumber}
+      Requested Appointment Time: ${appointmentTime}
+
+      A new meeting has been requested. Please contact the sender to confirm the appointment.
+    `;
+
+    window.location.href = `mailto:${userData.email}?subject=${subject}&body=${body}`;
+
+    setShowMeetingModal(false);
+    setName('');
+    setEmail('');
+    setContactNumber('');
+    setAppointmentTime('');
+  };
+
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
   };
 
   const saveContact = () => {
@@ -136,11 +173,11 @@ END:VCARD`;
       </div>
 
       {/* Backdrop filter layer */}
-      <div className="absolute inset-0 backdrop-filter backdrop-blur-md bg-white bg-opacity-30" />
+      <div className="absolute inset-0 backdrop-filter backdrop-blur-md bg-white bg-opacity-30 -z-50" />
 
       {/* Content */}
       <motion.div
-        className="relative z-10 min-h-[60vh] w-full flex flex-col items-center justify-center p-4 sm:p-8 text-green-700"
+        className="relative z-10 flex-grow w-full flex flex-col items-center justify-center p-4 sm:p-8 text-green-700 overflow-y-auto"
         variants={fadeInUpVariants}
         initial="hidden"
         animate="visible"
@@ -219,13 +256,16 @@ END:VCARD`;
             animate="visible"
           >
             {[
+              { icon: <FaInstagram />, link: socialLinks.instagram },
               { icon: <FaFacebook />, link: socialLinks.facebook },
+              { icon: <FaTwitter />, link: socialLinks.twitter },
               { icon: <FaLinkedin />, link: socialLinks.linkedin },
+              { icon: <FaGithub />, link: socialLinks.github },
+              { icon: <FaYoutube />, link: socialLinks.youtube },
               { icon: <FaDiscord />, link: socialLinks.discord },
               { icon: <FaMedium />, link: socialLinks.medium },
-              { icon: <FaAt />, link: `mailto:${userData.email}` },
-              { icon: <FaTwitter />, link: socialLinks.twitter },
-            ].map((item, index) => (
+              { icon: <FaAt />, link: userData.email ? `mailto:${userData.email}` : null },
+            ].filter(item => item.link).map((item, index) => (
               <motion.a
                 key={index}
                 href={item.link}
@@ -243,7 +283,7 @@ END:VCARD`;
 
           {/* Action buttons */}
           <motion.div
-            className="grid grid-cols-2 gap-4 mb-8"
+            className="flex flex-col items-center"
             variants={staggerChildrenVariants}
             initial="hidden"
             animate="visible"
@@ -254,17 +294,144 @@ END:VCARD`;
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border-2 border-green-600 rounded-full py-2 px-4 text-center text-green-700 hover:bg-green-600 hover:text-white transition-colors duration-300"
+                className={`${link.className} relative overflow-hidden border-2 border-green-400 rounded-lg px-4 py-2 mb-2 w-full max-w-xs text-center text-green-400 transition-colors duration-300 flex items-center justify-center`}
                 variants={fadeInUpVariants}
-                whileHover={{ scale: 1.05, backgroundColor: "rgba(34, 197, 94, 0.2)" }}
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {link.title}
+                <FaGlobe className="mr-2" />
+                <span>{link.title}</span>
               </motion.a>
             ))}
           </motion.div>
 
+       
+          {/* FAQ Section */}
+          {faqs.length > 0 && (
+            <motion.div
+              className="w-full max-w-4xl mt-8 p-4"
+              variants={fadeInUpVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <h3 className="text-2xl font-bold text-center mb-4 text-green-700">Frequently Asked Questions</h3>
+              <div className="space-y-4">
+                {faqs.map((faq, index) => (
+                  <motion.div
+                    key={index}
+                    className="border border-green-200 rounded-lg overflow-hidden"
+                    initial={false}
+                    animate={{ backgroundColor: expandedFaq === index ? 'rgba(34, 197, 94, 0.1)' : 'transparent' }}
+                  >
+                    <button
+                      className="w-full px-4 py-2 text-left flex justify-between items-center text-green-700"
+                      onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
+                    >
+                      <span>{faq.question}</span>
+                      <motion.div
+                        animate={{ rotate: expandedFaq === index ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <FaChevronDown />
+                      </motion.div>
+                    </button>
+                    <AnimatePresence>
+                      {expandedFaq === index && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: [0.04, 0.62, 0.23, 0.98] }}
+                          className="px-4 py-2 text-green-600"
+                        >
+                          {faq.answer}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
           {/* Footer */}
+             {/* Products Section */}
+             {products.length > 0 && (
+            <motion.div
+              className="w-full max-w-4xl mt-8 p-4"
+              variants={fadeInUpVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              <h3 className="text-2xl font-bold text-center mb-4 text-green-700">Products</h3>
+              <div className="overflow-hidden">
+                <Carousel
+                  className="rounded-xl scrollbar-hide"
+                  prevArrow={({ handlePrev }) => (
+                    products.length > 1 && (
+                      <button
+                        onClick={handlePrev}
+                        className="absolute top-1/2 left-4 -translate-y-1/2 bg-green-500 rounded-full p-2 text-white"
+                      >
+                        <FaChevronLeft />
+                      </button>
+                    )
+                  )}
+                  nextArrow={({ handleNext }) => (
+                    products.length > 1 && (
+                      <button
+                        onClick={handleNext}
+                        className="absolute top-1/2 right-4 -translate-y-1/2 bg-green-500 rounded-full p-2 text-white"
+                      >
+                        <FaChevronRight />
+                      </button>
+                    )
+                  )}
+                  navigation={({ setActiveIndex, activeIndex, length }) => (
+                    products.length > 1 && (
+                      <div className="absolute bottom-4 left-2/4 z-50 flex -translate-x-2/4 gap-2">
+                        {new Array(length).fill("").map((_, i) => (
+                          <span
+                            key={i}
+                            className={`block h-1 cursor-pointer rounded-2xl transition-all content-[''] ${
+                              activeIndex === i ? "w-8 bg-green-500" : "w-4 bg-green-300"
+                            }`}
+                            onClick={() => setActiveIndex(i)}
+                          />
+                        ))}
+                      </div>
+                    )
+                  )}
+                >
+                  {products.map((product, index) => (
+                    <motion.div
+                      key={index}
+                      className="h-full flex flex-col items-center justify-center p-4"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <img src={product.imageUrl} alt={product.name} className="w-full h-64 object-cover rounded-lg mb-4" />
+                      <h4 className="text-xl font-semibold mb-2 text-green-700">{product.name}</h4>
+                      <p className="text-sm mb-2 text-green-600 max-h-20 overflow-y-auto custom-scrollbar">{product.description}</p>
+                      <div className="flex flex-col items-center w-full mt-auto">
+                        <span className="text-lg font-bold text-green-700 mb-2">₹{product.price}</span>
+                        <a
+                          href={product.buyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-full transition duration-300 flex items-center"
+                        >
+                          <FaShoppingCart className="mr-2" />
+                          Buy Now
+                        </a>
+                      </div>
+                    </motion.div>
+                  ))}
+                </Carousel>
+              </div>
+            </motion.div>
+          )}
+
        
         </div>
       </motion.div>
@@ -296,9 +463,85 @@ END:VCARD`;
         )}
       </AnimatePresence>
 
+      {/* Meeting Modal */}
+      <AnimatePresence>
+        {showMeetingModal && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowMeetingModal(false)}
+          >
+            <motion.div
+              className="bg-white p-6 rounded-lg w-full max-w-md"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-2xl font-bold mb-4 text-gray-800">Schedule a Meeting</h2>
+              <form onSubmit={handleMeetingSubmit}>
+                <div className="mb-4">
+                  <label htmlFor="name" className="block text-gray-700 mb-2">Name</label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="email" className="block text-gray-700 mb-2">Email</label>
+                  <input
+                    type="email"
+                    id="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="contactNumber" className="block text-gray-700 mb-2">Contact Number</label>
+                  <input
+                    type="tel"
+                    id="contactNumber"
+                    value={contactNumber}
+                    onChange={(e) => setContactNumber(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label htmlFor="appointmentTime" className="block text-gray-700 mb-2">Appointment Time</label>
+                  <input
+                    type="datetime-local"
+                    id="appointmentTime"
+                    value={appointmentTime}
+                    onChange={(e) => setAppointmentTime(e.target.value)}
+                    min={getCurrentDateTime()}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-green-400 text-white py-2 px-4 rounded-md hover:bg-green-500 transition-colors duration-300"
+                >
+                  Request Meeting
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Bottom Navigation Bar */}
       <motion.div
-        className="relative z-10 backdrop-filter backdrop-blur-3xl border-t border-green-200"
+        className="relative  border-t border-green-200 z-1"
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         transition={{ delay: 0.5, duration: 0.5, ease: "easeOut" }}
@@ -308,6 +551,7 @@ END:VCARD`;
             <NavButton icon={FaPhone} rotate={true} isSelected={selectedNavItem === 'phone'} onClick={() => handleNavClick('phone')} />
             <NavButton icon={FaUserCircle} isSelected={selectedNavItem === 'profile'} onClick={() => handleNavClick('profile')} />
             <NavButton icon={FaQrcode} isSelected={selectedNavItem === 'qr'} onClick={() => handleNavClick('qr')} />
+            <NavButton icon={FaCalendar} isSelected={selectedNavItem === 'meeting'} onClick={() => handleNavClick('meeting')} />
           </div>
         </div>
       </motion.div>

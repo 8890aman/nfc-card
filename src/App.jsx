@@ -17,7 +17,8 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./components/pages/Login";
 import Signup from "./components/pages/Signup";
 import Dashboard from "./components/pages/dashboard/dashboard";
-
+import AdminDashboard from "./components/pages/AdminDashboard/AdminDashboard";
+import PaymentPage from "./components/pages/PaymentPage";
 // Add icons to the library
 library.add(
   faMicrochip, faWifi, faNetworkWired, faServer, 
@@ -54,6 +55,8 @@ function App() {
         <Route path="/user-walkthrough" element={<UserWalkthrough darkMode={darkMode} setDarkMode={handleDarkModeToggle} />} />
         <Route path="*" element={<NotFound darkMode={darkMode} setDarkMode={handleDarkModeToggle} />} />
         <Route path="/profile/:userId" element={<PublicProfilePage />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/payment" element={<PaymentPage />} />
       </Routes>
     </ThemeProvider>
   );

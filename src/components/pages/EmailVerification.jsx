@@ -16,7 +16,7 @@ const EmailVerification = () => {
       console.log("Email verified status:", user?.emailVerified);
       if (user?.emailVerified) {
         setIsVerified(true);
-        navigate('/user-walkthrough');
+        navigate('/design-card');
       } else {
         setMessage('Email is not verified yet. Please check your inbox and spam folder.');
       }

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { animated, useSpring } from '@react-spring/web';
 import Draggable from 'react-draggable';
+import { QRCodeSVG } from 'qrcode.react';
 
 const CARD_WIDTH = 300;
 const CARD_HEIGHT = 180;
@@ -21,12 +22,11 @@ const Card3D = ({ cardImage, cardText, cardColor, textColor, fontFamily, isDarkM
   }));
 
   const [textPosition, setTextPosition] = useState({ x: 0, y: 0 });
-  const [logoPosition, setLogoPosition] = useState({ x: 16, y: 16 });
   const [numberPosition, setNumberPosition] = useState({ x: 16, y: 16 });
+  const [qrCodeData, setQrCodeData] = useState('https://example.com');
 
   const cardRef = useRef(null);
   const textRef = useRef(null);
-  const logoRef = useRef(null);
   const numberRef = useRef(null);
 
   const constrainPosition = (position, elementRef) => {
@@ -126,6 +126,32 @@ const Card3D = ({ cardImage, cardText, cardColor, textColor, fontFamily, isDarkM
     return { backgroundColor: '#cccccc' };
   };
 
+  const getShineStyle = () => ({
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundImage: xRotation.to((x) => yRotation.to((y) => {
+      const xPercentage = (50 + y / 3).toFixed(2);
+      const yPercentage = (50 - x / 3).toFixed(2);
+      return `linear-gradient(${xPercentage}deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%), 
+              radial-gradient(circle at ${xPercentage}% ${yPercentage}%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 60%)`;
+    })),
+    opacity: 0.6,
+    mixBlendMode: 'soft-light',
+  });
+
+  const getShadowStyle = (x, y) => {
+    if (isDarkMode) return {};
+    const shadowX = -y / 20;
+    const shadowY = x / 20;
+    const shadowBlur = Math.sqrt(x * x + y * y) / 5;
+    return {
+      boxShadow: `${shadowX}px ${shadowY}px ${shadowBlur}px rgba(0, 0, 0, 0.3)`,
+    };
+  };
+
   return (
     <div className="relative">
       <animated.div
@@ -145,23 +171,27 @@ const Card3D = ({ cardImage, cardText, cardColor, textColor, fontFamily, isDarkM
           userSelect: 'none',
           touchAction: 'none',
           pointerEvents: 'auto',
-          overflow: 'hidden',
+          ...xRotation.to(x => yRotation.to(y => getShadowStyle(x, y))),
         }}
-        className="shadow-xl card-3d"
+        className="card-3d rounded-xl"
       >
-        <div style={{
-          ...getBackgroundStyle(),
-          position: 'absolute',
-          width: '100%',
-          height: '100%',
-          backfaceVisibility: 'hidden',
-          borderRadius: '10px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          userSelect: 'none',
-          overflow: 'hidden',
-        }}>
+        {/* Front of the card */}
+        <animated.div
+          style={{
+            ...getBackgroundStyle(),
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            backfaceVisibility: 'hidden',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            userSelect: 'none',
+            overflow: 'hidden',
+            rotateY: yRotation.to(y => `${y}deg`),
+          }}
+        >
           <div 
             className="absolute inset-0" 
             style={{
@@ -170,40 +200,17 @@ const Card3D = ({ cardImage, cardText, cardColor, textColor, fontFamily, isDarkM
               mixBlendMode: 'multiply',
             }}
           />
+          <animated.div style={getShineStyle()} />
           <Draggable
             position={textPosition}
             onDrag={handleDrag(setTextPosition, textRef)}
             disabled={!isEditMode}
           >
-            <span ref={textRef} className={`text-xl font-semibold absolute z-10 ${isEditMode ? 'cursor-move' : ''}`} style={{ color: textColor, fontFamily: fontFamily }}>
+            <span ref={textRef} className={`text-2xl font-bold absolute z-10 ${isEditMode ? 'cursor-move' : ''}`} style={{ color: textColor, fontFamily: fontFamily, textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
               {cardText}
             </span>
           </Draggable>
-          <animated.div 
-            className="absolute inset-0"
-            style={{
-              background: xRotation.to((x) => yRotation.to((y) => {
-                const xOffset = (50 + (y / 30) * 50).toFixed(2);
-                const yOffset = (50 - (x / 30) * 50).toFixed(2);
-                return `radial-gradient(circle at ${xOffset}% ${yOffset}%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 60%)`
-              })),
-              mixBlendMode: 'soft-light',
-            }}
-          />
-          <Draggable
-            position={logoPosition}
-            onDrag={handleDrag(setLogoPosition, logoRef)}
-            disabled={!isEditMode}
-          >
-            <div ref={logoRef} className={`absolute w-8 h-8 flex items-center justify-center ${isEditMode ? 'cursor-move' : ''}`} style={{ left: logoPosition.x, top: logoPosition.y }}>
-              <div className={`w-6 h-6 border-2 rounded-full flex items-center justify-center`} style={{ borderColor: textColor }}>
-                <div className={`w-4 h-4 border-t-2 border-l-2 rounded-tl-full`} style={{ borderColor: textColor }}></div>
-              </div>
-            </div>
-          </Draggable>
-          <div className="absolute bottom-4 right-4 w-12 h-12 border-2 rounded-full flex items-center justify-center" style={{ borderColor: textColor }}>
-            <div className="w-8 h-8 border-2 rounded-full" style={{ borderColor: textColor }}></div>
-          </div>
+       
           <Draggable
             position={numberPosition}
             onDrag={(e, data) => {
@@ -215,72 +222,60 @@ const Card3D = ({ cardImage, cardText, cardColor, textColor, fontFamily, isDarkM
           >
             <div 
               ref={numberRef} 
-              className={`absolute text-xs font-mono ${isEditMode ? 'cursor-move' : ''}`} 
+              className={`absolute text-sm font-mono ${isEditMode ? 'cursor-move' : ''}`} 
               style={{ 
                 color: textColor, 
                 left: numberPosition.x, 
                 bottom: numberPosition.y,
                 maxWidth: CARD_WIDTH - 32,
-                wordBreak: 'break-all'
+                wordBreak: 'break-all',
+                textShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                letterSpacing: '0.1em'
               }}
             >
-              1234 5678 9012 3456
+             ZapTag
             </div>
           </Draggable>
-          
-          {/* Add shine effect */}
-          <animated.div 
-            className="card-shine"
+        </animated.div>
+
+        {/* Back of the card */}
+        <animated.div
+          style={{
+            ...getBackgroundStyle(),
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backfaceVisibility: 'hidden',
+            borderRadius: '10px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            rotateY: yRotation.to(y => `${y + 180}deg`),
+          }}
+        >
+          <div 
+            className="absolute inset-0" 
             style={{
-              position: 'absolute',
-              top: 0,
-              left: xRotation.to(val => `${val * 2}px`),
-              width: '200%',
-              height: '100%',
-              opacity: 0.3,
-              background: 'linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 100%)',
-              transform: 'skewX(-20deg)',
+              backgroundColor: overlayColor,
+              opacity: overlayOpacity / 100,
+              mixBlendMode: 'multiply',
             }}
           />
-        </div>
-
-        <div style={{
-          ...getBackgroundStyle(),
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          backfaceVisibility: 'hidden',
-          borderRadius: '10px',
-          transform: 'rotateY(180deg)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-          boxSizing: 'border-box',
-          backgroundColor: cardColor,
-          zIndex: 1,
-        }}>
-          <span style={{ 
-            color: textColor, 
-            fontFamily: fontFamily,
-            fontSize: '1.5rem',
-            fontWeight: 'bold',
-            textAlign: 'center',
-            marginBottom: '20px',
-          }}>
-            {cardText}
-          </span>
-          <div style={{
-            color: textColor,
-            fontFamily: 'monospace',
-            fontSize: '1rem',
-          }}>
-            1234 5678 9012 3456
+          <animated.div style={getShineStyle()} />
+          <div className="flex flex-col items-center justify-center h-full">
+            <QRCodeSVG 
+              value={qrCodeData}
+              size={CARD_WIDTH / 3}
+              bgColor={"#ffffff"}
+              fgColor={"#000000"}
+              level={"L"}
+              includeMargin={false}
+            />
           </div>
-        </div>
+        </animated.div>
       </animated.div>
     </div>
   );

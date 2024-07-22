@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSpring } from '@react-spring/web';
 import { HexColorPicker, HexColorInput } from 'react-colorful';
 import { motion } from 'framer-motion';
@@ -13,12 +14,16 @@ import kawaiicute from "../../assets/images/kawaiicute.jpg";
 import steampunkgears from "../../assets/images/steampunkgears.jpg";
 import mecharoobot from "../../assets/images/mecharoobot.jpg";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPalette, faFont, faImage, faToggleOn, faToggleOff, faLayerGroup, faShoppingCart, faUpload, faTextWidth, faTimes, faEdit, faPencilAlt, faEye, faEyeSlash, faIcons, faEnvelope, faPhone, faGlobe, faAdjust } from '@fortawesome/free-solid-svg-icons';
+import { faPalette, faFont, faImage, faToggleOn, faToggleOff, faLayerGroup, faShoppingCart, faUpload, faTextWidth, faTimes, faEdit, faPencilAlt, faEye, faEyeSlash, faIcons, faEnvelope, faPhone, faGlobe, faAdjust, faAddressCard } from '@fortawesome/free-solid-svg-icons';
 import { faTwitter, faFacebook, faInstagram, faLinkedin, faGithub } from '@fortawesome/free-brands-svg-icons';
 import AnimatedBackground from '../utils/AnimatedBackground';
-import Navbar from '../common/Navbar';
 import Card3D from '../utils/3dCard';
 import Footer from '../layout/Footer';
+import html2canvas from 'html2canvas';
+import QRCodeSVG from 'qrcode-svg';
+
+const CARD_WIDTH = 300;
+const CARD_HEIGHT = 180;
 
 const DesignCardPage = ({ darkMode, setDarkMode }) => {
   const [cardColor, setCardColor] = useState('#ffffff');
@@ -145,9 +150,216 @@ const DesignCardPage = ({ darkMode, setDarkMode }) => {
     setCardEditMode(!cardEditMode);
   };
 
+  const generateCardImages = async () => {
+    try {
+      // Create a flat version of the card for capturing
+      const captureCard = document.createElement('div');
+      captureCard.style.width = `${CARD_WIDTH}px`;
+      captureCard.style.height = `${CARD_HEIGHT}px`;
+      captureCard.style.position = 'fixed';
+      captureCard.style.left = '-9999px';
+      captureCard.style.top = '-9999px';
+      document.body.appendChild(captureCard);
+
+      // Function to render card content
+      const renderCardContent = (isFront) => {
+        captureCard.innerHTML = '';
+        captureCard.style.fontFamily = fontFamily;
+        captureCard.style.color = textColor;
+        captureCard.style.display = 'flex';
+        captureCard.style.flexDirection = 'column';
+        captureCard.style.justifyContent = 'center';
+        captureCard.style.alignItems = 'center';
+        captureCard.style.padding = '20px';
+        captureCard.style.boxSizing = 'border-box';
+        captureCard.style.borderRadius = '10px';
+        captureCard.style.position = 'relative';
+        captureCard.style.overflow = 'hidden';
+
+        // Apply background
+        if (cardImage) {
+          captureCard.style.backgroundImage = `url(${cardImage})`;
+          captureCard.style.backgroundSize = 'cover';
+          captureCard.style.backgroundPosition = 'center';
+        } else if (useGradient) {
+          if (gradientType === 'linear') {
+            captureCard.style.background = `linear-gradient(${gradientAngle}deg, ${gradientColor1}, ${gradientColor2})`;
+          } else if (gradientType === 'radial') {
+            captureCard.style.background = `radial-gradient(circle, ${gradientColor1}, ${gradientColor2})`;
+          }
+        } else {
+          captureCard.style.backgroundColor = cardColor;
+        }
+
+        // Apply overlay
+        const overlayElement = document.createElement('div');
+        overlayElement.style.position = 'absolute';
+        overlayElement.style.top = '0';
+        overlayElement.style.left = '0';
+        overlayElement.style.width = '100%';
+        overlayElement.style.height = '100%';
+        overlayElement.style.backgroundColor = overlayColor;
+        overlayElement.style.opacity = overlayOpacity / 100;
+        overlayElement.style.mixBlendMode = 'multiply';
+        captureCard.appendChild(overlayElement);
+
+        if (isFront) {
+          // Main text
+          const textElement = document.createElement('div');
+          textElement.textContent = cardText;
+          textElement.style.fontSize = '24px';
+          textElement.style.fontWeight = 'bold';
+          textElement.style.textAlign = 'center';
+          textElement.style.width = '100%';
+          textElement.style.padding = '0 20px';
+          textElement.style.boxSizing = 'border-box';
+          textElement.style.display = 'flex';
+          textElement.style.justifyContent = 'center';
+          textElement.style.alignItems = 'center';
+          textElement.style.height = '100%';
+          textElement.style.position = 'absolute';
+          textElement.style.top = '0';
+          textElement.style.left = '0';
+          textElement.style.transform = 'translateY(-12px)'; // Move text up by 35px
+          captureCard.appendChild(textElement);
+
+          // Card number
+          const numberElement = document.createElement('div');
+          numberElement.textContent = 'ZapTag';
+          numberElement.style.position = 'absolute';
+          numberElement.style.bottom = '16px';
+          numberElement.style.left = '16px';
+          numberElement.style.fontSize = '12px';
+          numberElement.style.letterSpacing = '0.1em';
+          captureCard.appendChild(numberElement);
+
+          // Add icons
+          cardIcons.forEach((icon, index) => {
+            const iconElement = document.createElement('div');
+            iconElement.innerHTML = icon.icon.html[0];
+            iconElement.style.position = 'absolute';
+            iconElement.style.top = '16px';
+            iconElement.style.right = `${16 + index * 30}px`;
+            iconElement.style.fontSize = icon.size === 'small' ? '16px' : icon.size === 'large' ? '24px' : '20px';
+            iconElement.style.color = icon.color;
+            captureCard.appendChild(iconElement);
+          });
+        } else {
+          // QR code for the back of the card
+          const qrCode = new QRCodeSVG({
+            content: 'https://example.com',
+            width: 100,
+            height: 100,
+            color: textColor,
+            background: 'transparent',
+          });
+          const qrElement = document.createElement('div');
+          qrElement.innerHTML = qrCode.svg();
+          qrElement.style.display = 'flex';
+          qrElement.style.justifyContent = 'center';
+          qrElement.style.alignItems = 'center';
+          qrElement.style.width = '100%';
+          qrElement.style.height = '100%';
+          captureCard.appendChild(qrElement);
+        }
+      };
+
+      // Capture front of the card
+      renderCardContent(true);
+      const frontCanvas = await html2canvas(captureCard, {
+        useCORS: true,
+        allowTaint: true,
+        scale: 2,
+        width: CARD_WIDTH,
+        height: CARD_HEIGHT,
+      });
+      const frontImage = frontCanvas.toDataURL('image/png');
+
+      // Capture back of the card
+      renderCardContent(false);
+      const backCanvas = await html2canvas(captureCard, {
+        useCORS: true,
+        allowTaint: true,
+        scale: 2,
+        width: CARD_WIDTH,
+        height: CARD_HEIGHT,
+      });
+      const backImage = backCanvas.toDataURL('image/png');
+
+      // Remove the temporary capture element
+      document.body.removeChild(captureCard);
+
+      return { frontImage, backImage };
+    } catch (error) {
+      console.error('Error generating card images:', error);
+      return null;
+    }
+  };
+
+  const navigate = useNavigate();
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [address, setAddress] = useState({
+    name: '',
+    street: '',
+    city: '',
+    state: '',
+    zip: '',
+    country: ''
+  });
+
+  const modalRef = useRef();
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        setShowAddressModal(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleAddressChange = (e) => {
+    setAddress({ ...address, [e.target.name]: e.target.value });
+  };
+  const handleAddressSubmit = (e) => {
+    e.preventDefault();
+    console.log('Address submitted:', address);
+    navigate('/payment', { 
+      state: { 
+        amount: 1000, // Amount in paise (e.g., 1000 paise = ₹10)
+        currency: 'INR',
+        name: address.name,
+        email: 'customer@example.com', // You might want to add an email field to your address form
+        contact: '9999999999', // You might want to add a phone number field to your address form
+        cardProps: {
+          cardText,
+          cardImage,
+          cardColor,
+          textColor,
+          fontFamily,
+          useColorPicker,
+          useGradient,
+          gradientType,
+          gradientAngle,
+          gradientColor1,
+          gradientColor2,
+          cardIcons,
+          overlayColor,
+          overlayOpacity
+        }
+      } 
+    });
+    setShowAddressModal(false);
+    
+    // Here you would typically send the address to your backend or process it as needed
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-black transition-colors duration-300 overflow-hidden">
-      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
       <AnimatedBackground />
       <div className="absolute inset-0 bg-white dark:bg-black bg-opacity-50 dark:bg-opacity-50 backdrop-blur-2xl z-0"></div>
       
@@ -490,12 +702,22 @@ const DesignCardPage = ({ darkMode, setDarkMode }) => {
 
           {/* Add the Get Card button outside of the sections */}
           <div className="p-8 bg-gray-100 dark:bg-gray-700">
-            <button
-              className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center"
-            >
-              <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
-              Get Card
-            </button>
+            <div className="flex justify-between items-center">
+              <button
+                onClick={generateCardImages}
+                className="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center"
+              >
+                <FontAwesomeIcon icon={faShoppingCart} className="mr-2" />
+                Get Card
+              </button>
+              <button
+                onClick={() => setShowAddressModal(true)}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 flex items-center justify-center ml-4"
+              >
+                <FontAwesomeIcon icon={faAddressCard} className="mr-2" />
+                Enter Address
+              </button>
+            </div>
           </div>
         </div>
       </motion.div>
@@ -722,6 +944,47 @@ const DesignCardPage = ({ darkMode, setDarkMode }) => {
       )}
 
       <Footer />
+      {showAddressModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div ref={modalRef} className="bg-white dark:bg-gray-800 p-8 rounded-lg w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Enter Your Address</h2>
+            <form onSubmit={handleAddressSubmit}>
+              <div className="mb-4">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
+                <input type="text" id="name" name="name" value={address.name} onChange={handleAddressChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="street" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Street Address</label>
+                <input type="text" id="street" name="street" value={address.street} onChange={handleAddressChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700 dark:text-gray-300">City</label>
+                <input type="text" id="city" name="city" value={address.city} onChange={handleAddressChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="state" className="block text-sm font-medium text-gray-700 dark:text-gray-300">State/Province</label>
+                <input type="text" id="state" name="state" value={address.state} onChange={handleAddressChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="zip" className="block text-sm font-medium text-gray-700 dark:text-gray-300">ZIP/Postal Code</label>
+                <input type="text" id="zip" name="zip" value={address.zip} onChange={handleAddressChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="country" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Country</label>
+                <input type="text" id="country" name="country" value={address.country} onChange={handleAddressChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required />
+              </div>
+              <div className="flex justify-end">
+                <button type="button" onClick={() => setShowAddressModal(false)} className="mr-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  Cancel
+                </button>
+                <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
