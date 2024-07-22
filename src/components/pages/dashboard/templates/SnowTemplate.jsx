@@ -72,6 +72,21 @@ END:VCARD`;
     return now.toISOString().slice(0, 16);
   };
 
+  React.useEffect(() => {
+    const video = document.querySelector('video');
+    const fallbackImage = document.querySelector('.bg-cover');
+
+    if (video) {
+      video.addEventListener('playing', () => {
+        if (fallbackImage) fallbackImage.style.display = 'none';
+      });
+
+      video.addEventListener('error', () => {
+        if (fallbackImage) fallbackImage.style.display = 'block';
+      });
+    }
+  }, []);
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden flex flex-col bg-gray-900 text-blue-200">
       {/* Video Background */}
@@ -79,17 +94,28 @@ END:VCARD`;
         autoPlay
         loop
         muted
+        playsInline
         className="absolute inset-0 w-full h-full object-cover"
         style={{filter: 'blur(1px)'}}
         ref={(el) => {
           if (el) {
-            el.playbackRate = 0.5; // Adjust this value to control the speed (0.5 is half speed)
+            el.playbackRate = 0.5;
+            el.play().catch(error => console.log("Autoplay was prevented:", error));
           }
         }}
       >
         <source src={snowVideo} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
+
+      {/* Fallback image for devices that don't support video autoplay */}
+      {/* <div 
+        className="absolute inset-0 bg-cover bg-center z-0"
+        style={{
+          backgroundImage: `url(${require('../../../../assets/images/snow-fallback.jpg')})`,
+          display: 'none',
+        }}
+      ></div> */}
 
       {/* Overlay to darken the background */}
       <div className="absolute inset-0 bg-black opacity-30"></div>

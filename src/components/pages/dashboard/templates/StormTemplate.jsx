@@ -79,6 +79,7 @@ END:VCARD`;
         autoPlay
         loop
         muted
+        playsInline
         className="absolute inset-0 w-full h-full object-cover"
         style={{filter: 'blur(1px)'}}
         ref={(el) => {
