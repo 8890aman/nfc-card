@@ -1,14 +1,12 @@
-/* eslint-disable react/prop-types */
-/* eslint-disable no-unused-vars */
-import React, { useRef, useState, useEffect, Suspense } from 'react';
-import { motion, AnimatePresence } from "framer-motion";
-import { useSpring, animated } from 'react-spring';
-import { FaFacebook, FaLinkedin, FaDiscord, FaMedium, FaAt, FaTwitter, FaInstagram, FaUser, FaPhone, FaQrcode, FaUserCircle, FaGithub, FaYoutube, FaCalendar, FaChevronDown, FaChevronUp, FaGlobe, FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { motion, AnimatePresence, useAnimation } from "framer-motion";
+import { FaFacebook, FaLinkedin, FaDiscord, FaMedium, FaAt, FaTwitter, FaInstagram, FaUser, FaPhone, FaQrcode, FaUserCircle, FaGithub, FaYoutube, FaCalendar, FaChevronDown, FaChevronUp, FaGlobe } from 'react-icons/fa';
 import { QRCodeSVG } from 'qrcode.react';
-import stormVideo from '../../../../assets/video/15250-262569986_medium.mp4';
+import snowVideo from '../../../../assets/video/15250-262569986_medium.mp4';
 import { Carousel } from "@material-tailwind/react";
+import { FaShoppingCart, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
-const StormTemplate = ({ userData, links, socialLinks, tags, containerClassName, faqs = [], products = [] }) => {
+const SnowTemplate = ({ userData, links, socialLinks, tags, containerClassName, faqs = [], products = [] }) => {
   const [showQR, setShowQR] = useState(false);
   const [selectedNavItem, setSelectedNavItem] = useState('profile');
   const [expandedFaq, setExpandedFaq] = useState(null);
@@ -17,6 +15,7 @@ const StormTemplate = ({ userData, links, socialLinks, tags, containerClassName,
   const [appointmentTime, setAppointmentTime] = useState('');
   const [name, setName] = useState('');
   const [contactNumber, setContactNumber] = useState('');
+
   const saveContact = () => {
     const vCard = `BEGIN:VCARD
 VERSION:3.0
@@ -36,11 +35,8 @@ END:VCARD`;
   };
 
   const handleNavClick = (item) => {
-    setSelectedNavItem(item);
     if (item === 'qr') {
       setShowQR(true);
-    } else if (item === 'phone') {
-      saveContact();
     } else if (item === 'meeting') {
       setShowMeetingModal(true);
     } else {
@@ -77,21 +73,26 @@ END:VCARD`;
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden flex flex-col bg-gray-900 text-blue-200 ">
-      {/* Background Video */}
+    <div className="relative min-h-screen w-full overflow-hidden flex flex-col bg-gray-900 text-blue-200">
+      {/* Video Background */}
       <video
         autoPlay
         loop
         muted
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ filter: 'brightness(90%)' }}
+        style={{filter: 'blur(1px)'}}
+        ref={(el) => {
+          if (el) {
+            el.playbackRate = 0.5; // Adjust this value to control the speed (0.5 is half speed)
+          }
+        }}
       >
-        <source src={stormVideo} type="video/mp4" />
+        <source src={snowVideo} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
-      {/* Overlay to darken the video */}
-      <div className="absolute inset-0 bg-black opacity-50"></div>
+      {/* Overlay to darken the background */}
+      <div className="absolute inset-0 bg-black opacity-30"></div>
 
       {/* Content */}
       <motion.div
@@ -100,7 +101,7 @@ END:VCARD`;
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="w-full max-w-4xl backdrop-blur-sm  bg-opacity-50 p-8 rounded-lg">
+        <div className="w-full max-w-4xl">
           {/* Profile section */}
           <motion.div
             className="w-40 h-40 mx-auto mb-6 relative"
@@ -276,10 +277,10 @@ END:VCARD`;
           {/* Products Section */}
           {products.length > 0 && (
             <motion.div
-              className="mt-8 w-full max-w-4xl mx-auto"
+              className="mt-8 w-full"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.8 }}
+              transition={{ delay: 0.7 }}
             >
               <h3 className="text-2xl font-bold text-center mb-4 text-blue-300">Products</h3>
               <Carousel
@@ -288,7 +289,7 @@ END:VCARD`;
                   products.length > 1 && (
                     <button
                       onClick={handlePrev}
-                      className="absolute top-1/2 left-4 -translate-y-1/2 bg-blue-400/30 hover:bg-blue-400/50 rounded-full p-2 text-white transition-colors"
+                      className="absolute top-1/2 left-4 -translate-y-1/2 bg-blue-500 rounded-full p-2 text-white"
                     >
                       <FaChevronLeft />
                     </button>
@@ -298,15 +299,22 @@ END:VCARD`;
                   products.length > 1 && (
                     <button
                       onClick={handleNext}
-                      className="absolute top-1/2 right-4 -translate-y-1/2 bg-blue-400/30 hover:bg-blue-400/50 rounded-full p-2 text-white transition-colors"
+                      className="absolute top-1/2 right-4 -translate-y-1/2 bg-blue-500 rounded-full p-2 text-white"
                     >
                       <FaChevronRight />
                     </button>
                   )
                 )}
+                navigation={({ setActiveIndex, activeIndex, length }) => null} // Remove dots by returning null
               >
                 {products.map((product, index) => (
-                  <div key={index} className="h-full flex flex-col items-center justify-center p-4">
+                  <motion.div
+                    key={index}
+                    className="h-full flex flex-col items-center justify-center p-4"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * index }}
+                  >
                     <img src={product.imageUrl} alt={product.name} className="w-full h-64 object-cover rounded-lg mb-4" />
                     <h4 className="text-xl font-semibold mb-2 text-blue-300">{product.name}</h4>
                     <p className="text-sm mb-2 text-blue-200 max-h-20 overflow-y-auto">{product.description}</p>
@@ -316,13 +324,13 @@ END:VCARD`;
                         href={product.buyUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-blue-400 hover:bg-blue-500 text-gray-900 py-2 px-4 rounded-full transition duration-300 flex items-center"
+                        className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-full transition duration-300 flex items-center"
                       >
                         <FaShoppingCart className="mr-2" />
                         Buy Now
                       </a>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </Carousel>
             </motion.div>
@@ -332,14 +340,14 @@ END:VCARD`;
 
       {/* Navigation */}
       <motion.div
-        className=" bottom-0 left-0 right-0 bg-gray-800 bg-opacity-50 backdrop-blur-sm relative"
+        className="bottom-0 left-0 right-0 bg-gray-800 bg-opacity-50 backdrop-blur-sm relative"
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         transition={{ delay: 0.8, duration: 0.5 }}
       >
         <div className="max-w-md mx-auto px-4 py-3">
           <div className="flex justify-around items-center">
-            <NavButton icon={FaPhone} isSelected={selectedNavItem === 'phone'} onClick={saveContact}  className="z-50"/>
+            <NavButton icon={FaPhone} isSelected={selectedNavItem === 'phone'} onClick={saveContact} />
             <NavButton icon={FaUserCircle} isSelected={selectedNavItem === 'profile'} onClick={() => handleNavClick('profile')} />
             <NavButton icon={FaQrcode} isSelected={selectedNavItem === 'qr'} onClick={() => handleNavClick('qr')} />
             <NavButton icon={FaCalendar} isSelected={selectedNavItem === 'meeting'} onClick={() => handleNavClick('meeting')} />
@@ -370,7 +378,6 @@ END:VCARD`;
           </motion.div>
         )}
       </AnimatePresence>
-
       {/* Meeting Modal */}
       <AnimatePresence>
         {showMeetingModal && (
@@ -446,9 +453,12 @@ END:VCARD`;
           </motion.div>
         )}
       </AnimatePresence>
+      
     </div>
   );
 };
+
+
 
 const NavButton = ({ icon: Icon, isSelected, onClick }) => (
   <motion.button
@@ -465,4 +475,4 @@ const NavButton = ({ icon: Icon, isSelected, onClick }) => (
   </motion.button>
 );
 
-export default StormTemplate;
+export default SnowTemplate;

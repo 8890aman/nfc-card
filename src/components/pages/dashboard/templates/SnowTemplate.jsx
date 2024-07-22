@@ -80,6 +80,7 @@ END:VCARD`;
         loop
         muted
         className="absolute inset-0 w-full h-full object-cover"
+        style={{filter: 'blur(1px)'}}
         ref={(el) => {
           if (el) {
             el.playbackRate = 0.5; // Adjust this value to control the speed (0.5 is half speed)
@@ -304,6 +305,7 @@ END:VCARD`;
                     </button>
                   )
                 )}
+                navigation={({ setActiveIndex, activeIndex, length }) => null} // Remove dots by returning null
               >
                 {products.map((product, index) => (
                   <motion.div

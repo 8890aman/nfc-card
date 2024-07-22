@@ -317,6 +317,7 @@ END:VCARD`;
               </h3>
               <Carousel
                 className="rounded-xl"
+                navigation={() => null}
                 prevArrow={({ handlePrev }) =>
                   products.length > 1 && (
                     <button
